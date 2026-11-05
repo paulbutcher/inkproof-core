@@ -66,7 +66,8 @@ def value (s : Series α β) (i : Fin s.size) : Option β := s.values[i]'(s.size
 
 def points (s : Series α β) : Array (α × Option β) := s.xs.zip s.values
 
-/-- Checks that the arrays have equal sizes and the x-values never decrease. -/
+/-- Checks that the arrays have equal sizes and the x-values never decrease; see `ofArrays?_ok_iff`,
+`ofArrays?_eq_ok` and `ofArrays?_eq_error_unsorted`. -/
 def ofArrays? [DecidableLE α] [Std.IsPreorder α] (xs : Array α) (values : Array (Option β)) :
     Except SeriesError (Series α β) :=
   if hs : values.size = xs.size then
@@ -77,13 +78,13 @@ def ofArrays? [DecidableLE α] [Std.IsPreorder α] (xs : Array α) (values : Arr
         simpa using Internal.adjacent_of_firstAdjacentFailure hd i (Nat.zero_le i) hi⟩
   else .error (.sizeMismatch xs.size values.size)
 
-/-- Checks that the x-values never decrease. -/
+/-- Checks that the x-values never decrease; see `ofPoints?_ok_iff` and `ofPoints?_eq_ok`. -/
 def ofPoints? [DecidableLE α] [Std.IsPreorder α] (points : Array (α × Option β)) :
     Except SeriesError (Series α β) :=
   ofArrays? (points.map (·.1)) (points.map (·.2))
 
 /-- Sorts the points by x-value. The sort is stable: points with equal x-values keep their input
-order. -/
+order (`ofUnsorted_stable`), and no point is added or lost (`ofUnsorted_perm`). -/
 def ofUnsorted [DecidableLE α] [Std.IsLinearOrder α] (points : Array (α × Option β)) :
     Series α β :=
   let sorted := points.toList.mergeSort (fun p q => decide (p.1 ≤ q.1))

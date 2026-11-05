@@ -32,7 +32,8 @@ variable {α : Type u} {β : Type v} [LE α]
 def single (s : Series α β) : Segmented α β :=
   ⟨s, #[], fun _ h => absurd h (by simp), fun _ h => absurd h (by simp)⟩
 
-/-- Checks that the breaks increase strictly and lie strictly inside the series. -/
+/-- Checks that the breaks increase strictly and lie strictly inside the series; see
+`ofBreaks?_ok_iff` and `ofBreaks?_eq_ok`. -/
 def ofBreaks? (s : Series α β) (breaks : Array Nat) : Except SegmentError (Segmented α β) :=
   match hd : Internal.firstAdjacentFailure (fun a b => decide (a < b)) breaks 0 with
   | some i => .error (.unsortedBreaks i)
@@ -47,8 +48,8 @@ def ofBreaks? (s : Series α β) (breaks : Array Nat) : Except SegmentError (Seg
           simp at this
           omega⟩
 
-/-- Splits the series wherever `gap` holds between the x-values of adjacent points. The library
-never decides on its own where a gap is. -/
+/-- Splits the series wherever `gap` holds between the x-values of adjacent points, and nowhere else
+(`mem_breaks_splitWhere`). The library never decides on its own where a gap is. -/
 def splitWhere (s : Series α β) (gap : α → α → Bool) : Segmented α β :=
   let isBreak (i : Nat) : Bool :=
     if h : i < s.size ∧ 0 < i then gap (s.xs[i - 1]'(by unfold Series.size at h; omega)) (s.xs[i]'h.1)
@@ -84,6 +85,8 @@ def segmentStop (g : Segmented α β) (k : Nat) : Nat :=
 def segment (g : Segmented α β) (k : Nat) : Series α β :=
   g.series.slice (g.segmentStart k) (g.segmentStop k)
 
+/-- The segments in order. None is empty (`segmentStart_lt_segmentStop`), and together they hold
+exactly the points of the series (`flatten_segments`). -/
 def segments (g : Segmented α β) : Array (Series α β) :=
   (Array.range g.numSegments).map g.segment
 
