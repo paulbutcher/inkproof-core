@@ -4,4 +4,4 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 lake build InkproofCore >&2
-lake exe api-lock Inkproof.Core
+lake exe api-lock Inkproof.Core Inkproof.Core.Proofs

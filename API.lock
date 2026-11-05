@@ -1,0 +1,161 @@
+class Inkproof.Core.Aggregate : Type u → Type u
+field Inkproof.Core.Aggregate.empty : {M : Type u} → [self : Inkproof.Core.Aggregate M] → M
+def Inkproof.Core.Aggregate.fold : {M : Type u} → [Inkproof.Core.Aggregate M] → {γ : Type v} → (γ → M) → Array γ → M
+theorem Inkproof.Core.Aggregate.fold_eq_foldr : ∀ {M : Type u} [inst : Inkproof.Core.Aggregate M] {γ : Type v} [Inkproof.Core.LawfulAggregate M] (m : γ → M) (xs : Array γ), Inkproof.Core.Aggregate.fold m xs = List.foldr Inkproof.Core.Aggregate.merge Inkproof.Core.Aggregate.empty (List.map m xs.toList)
+theorem Inkproof.Core.Aggregate.fold_prod : ∀ {γ : Type v} {A : Type u} {B : Type w} [inst : Inkproof.Core.Aggregate A] [inst_1 : Inkproof.Core.Aggregate B] (m₁ : γ → A) (m₂ : γ → B) (xs : Array γ), Inkproof.Core.Aggregate.fold (fun x => (m₁ x, m₂ x)) xs = (Inkproof.Core.Aggregate.fold m₁ xs, Inkproof.Core.Aggregate.fold m₂ xs)
+field Inkproof.Core.Aggregate.merge : {M : Type u} → [self : Inkproof.Core.Aggregate M] → M → M → M
+constructor Inkproof.Core.Aggregate.mk : {M : Type u} → M → (M → M → M) → Inkproof.Core.Aggregate M
+structure Inkproof.Core.Count : Type
+theorem Inkproof.Core.Count.fold_get : ∀ {γ : Type v} (m : γ → Inkproof.Core.Count) (xs : Array γ), (Inkproof.Core.Aggregate.fold m xs).get = (List.map (fun x => (m x).get) xs.toList).sum
+field Inkproof.Core.Count.get : Inkproof.Core.Count → Nat
+constructor Inkproof.Core.Count.mk : Nat → Inkproof.Core.Count
+structure Inkproof.Core.First : Type u → Type u
+theorem Inkproof.Core.First.fold_get : ∀ {γ : Type v} {α : Type u} (m : γ → Inkproof.Core.First α) (xs : Array γ), (Inkproof.Core.Aggregate.fold m xs).get = List.findSome? (fun x => (m x).get) xs.toList
+field Inkproof.Core.First.get : {α : Type u} → Inkproof.Core.First α → Option α
+constructor Inkproof.Core.First.mk : {α : Type u} → Option α → Inkproof.Core.First α
+structure Inkproof.Core.Last : Type u → Type u
+theorem Inkproof.Core.Last.fold_get : ∀ {γ : Type v} {α : Type u} (m : γ → Inkproof.Core.Last α) (xs : Array γ), (Inkproof.Core.Aggregate.fold m xs).get = List.findSome? (fun x => (m x).get) xs.toList.reverse
+field Inkproof.Core.Last.get : {α : Type u} → Inkproof.Core.Last α → Option α
+constructor Inkproof.Core.Last.mk : {α : Type u} → Option α → Inkproof.Core.Last α
+class Inkproof.Core.LawfulAggregate : (M : Type u) → [Inkproof.Core.Aggregate M] → Prop
+theorem Inkproof.Core.LawfulAggregate.empty_merge : ∀ {M : Type u} [inst : Inkproof.Core.Aggregate M] [Inkproof.Core.LawfulAggregate M] (a : M), Inkproof.Core.Aggregate.merge Inkproof.Core.Aggregate.empty a = a
+theorem Inkproof.Core.LawfulAggregate.merge_assoc : ∀ {M : Type u} [inst : Inkproof.Core.Aggregate M] [Inkproof.Core.LawfulAggregate M] (a b c : M), Inkproof.Core.Aggregate.merge (Inkproof.Core.Aggregate.merge a b) c = Inkproof.Core.Aggregate.merge a (Inkproof.Core.Aggregate.merge b c)
+theorem Inkproof.Core.LawfulAggregate.merge_empty : ∀ {M : Type u} [inst : Inkproof.Core.Aggregate M] [Inkproof.Core.LawfulAggregate M] (a : M), Inkproof.Core.Aggregate.merge a Inkproof.Core.Aggregate.empty = a
+constructor Inkproof.Core.LawfulAggregate.mk : ∀ {M : Type u} [inst : Inkproof.Core.Aggregate M] [toAssociative : Std.Associative Inkproof.Core.Aggregate.merge] [toLawfulIdentity : Std.LawfulIdentity Inkproof.Core.Aggregate.merge Inkproof.Core.Aggregate.empty], Inkproof.Core.LawfulAggregate M
+theorem Inkproof.Core.LawfulAggregate.of_laws : ∀ {M : Type u} [inst : Inkproof.Core.Aggregate M], (∀ (a b c : M), Inkproof.Core.Aggregate.merge (Inkproof.Core.Aggregate.merge a b) c = Inkproof.Core.Aggregate.merge a (Inkproof.Core.Aggregate.merge b c)) → (∀ (a : M), Inkproof.Core.Aggregate.merge Inkproof.Core.Aggregate.empty a = a) → (∀ (a : M), Inkproof.Core.Aggregate.merge a Inkproof.Core.Aggregate.empty = a) → Inkproof.Core.LawfulAggregate M
+theorem Inkproof.Core.LawfulAggregate.toAssociative : ∀ {M : Type u} {inst : Inkproof.Core.Aggregate M} [self : Inkproof.Core.LawfulAggregate M], Std.Associative Inkproof.Core.Aggregate.merge
+theorem Inkproof.Core.LawfulAggregate.toLawfulIdentity : ∀ {M : Type u} {inst : Inkproof.Core.Aggregate M} [self : Inkproof.Core.LawfulAggregate M], Std.LawfulIdentity Inkproof.Core.Aggregate.merge Inkproof.Core.Aggregate.empty
+structure Inkproof.Core.Maximum : Type u → Type u
+theorem Inkproof.Core.Maximum.fold_get_eq_none : ∀ {γ : Type v} {α : Type u} [inst : LE α] [inst_1 : DecidableLE α] [Std.IsLinearOrder α] (m : γ → Inkproof.Core.Maximum α) (xs : Array γ), (Inkproof.Core.Aggregate.fold m xs).get = Option.none ↔ ∀ (x : γ), x ∈ xs → (m x).get = Option.none
+theorem Inkproof.Core.Maximum.fold_get_eq_some : ∀ {γ : Type v} {α : Type u} [inst : LE α] [inst_1 : DecidableLE α] [Std.IsLinearOrder α] (m : γ → Inkproof.Core.Maximum α) (xs : Array γ) (a : α), (Inkproof.Core.Aggregate.fold m xs).get = Option.some a ↔ (∃ x, x ∈ xs ∧ (m x).get = Option.some a) ∧ ∀ (x : γ), x ∈ xs → ∀ (b : α), (m x).get = Option.some b → b ≤ a
+field Inkproof.Core.Maximum.get : {α : Type u} → Inkproof.Core.Maximum α → Option α
+constructor Inkproof.Core.Maximum.mk : {α : Type u} → Option α → Inkproof.Core.Maximum α
+structure Inkproof.Core.Minimum : Type u → Type u
+theorem Inkproof.Core.Minimum.fold_get_eq_none : ∀ {γ : Type v} {α : Type u} [inst : LE α] [inst_1 : DecidableLE α] [Std.IsLinearOrder α] (m : γ → Inkproof.Core.Minimum α) (xs : Array γ), (Inkproof.Core.Aggregate.fold m xs).get = Option.none ↔ ∀ (x : γ), x ∈ xs → (m x).get = Option.none
+theorem Inkproof.Core.Minimum.fold_get_eq_some : ∀ {γ : Type v} {α : Type u} [inst : LE α] [inst_1 : DecidableLE α] [Std.IsLinearOrder α] (m : γ → Inkproof.Core.Minimum α) (xs : Array γ) (a : α), (Inkproof.Core.Aggregate.fold m xs).get = Option.some a ↔ (∃ x, x ∈ xs ∧ (m x).get = Option.some a) ∧ ∀ (x : γ), x ∈ xs → ∀ (b : α), (m x).get = Option.some b → a ≤ b
+field Inkproof.Core.Minimum.get : {α : Type u} → Inkproof.Core.Minimum α → Option α
+constructor Inkproof.Core.Minimum.mk : {α : Type u} → Option α → Inkproof.Core.Minimum α
+structure Inkproof.Core.Occupancy : Type
+field Inkproof.Core.Occupancy.bits : Inkproof.Core.Occupancy → Nat
+def Inkproof.Core.Occupancy.contains : Inkproof.Core.Occupancy → Nat → Bool
+theorem Inkproof.Core.Occupancy.contains_merge : ∀ (a b : Inkproof.Core.Occupancy) (i : Nat), (Inkproof.Core.Aggregate.merge a b).contains i = (a.contains i || b.contains i)
+theorem Inkproof.Core.Occupancy.contains_singleton : ∀ (i j : Nat), (Inkproof.Core.Occupancy.singleton j).contains i = Bool.true ↔ i = j
+theorem Inkproof.Core.Occupancy.fold_contains : ∀ {γ : Type v} (m : γ → Inkproof.Core.Occupancy) (xs : Array γ) (i : Nat), (Inkproof.Core.Aggregate.fold m xs).contains i = Bool.true ↔ ∃ x, x ∈ xs ∧ (m x).contains i = Bool.true
+constructor Inkproof.Core.Occupancy.mk : Nat → Inkproof.Core.Occupancy
+def Inkproof.Core.Occupancy.singleton : Nat → Inkproof.Core.Occupancy
+inductive Inkproof.Core.SegmentError : Type
+constructor Inkproof.Core.SegmentError.breakOutOfRange : Nat → Nat → Inkproof.Core.SegmentError
+constructor Inkproof.Core.SegmentError.unsortedBreaks : Nat → Inkproof.Core.SegmentError
+structure Inkproof.Core.Segmented : (α : Type u) → Type v → [LE α] → Type (max u v)
+field Inkproof.Core.Segmented.breaks : {α : Type u} → {β : Type v} → [inst : LE α] → Inkproof.Core.Segmented α β → Array Nat
+theorem Inkproof.Core.Segmented.breaks_bounded : ∀ {α : Type u} {β : Type v} [inst : LE α] (self : Inkproof.Core.Segmented α β) (i : Nat) (h : i < self.breaks.size), 0 < self.breaks[i] ∧ self.breaks[i] < self.series.size
+theorem Inkproof.Core.Segmented.breaks_increasing : ∀ {α : Type u} {β : Type v} [inst : LE α] (self : Inkproof.Core.Segmented α β) (i : Nat) (h : i + 1 < self.breaks.size), self.breaks[i] < self.breaks[i + 1]
+theorem Inkproof.Core.Segmented.flatten_segments : ∀ {α : Type u} {β : Type v} [inst : LE α] (g : Inkproof.Core.Segmented α β), (List.map (fun x => x.points.toList) g.segments.toList).flatten = g.series.points.toList
+theorem Inkproof.Core.Segmented.mem_breaks_splitWhere : ∀ {α : Type u} {β : Type v} [inst : LE α] (s : Inkproof.Core.Series α β) (gap : α → α → Bool) (b : Nat), b ∈ (Inkproof.Core.Segmented.splitWhere s gap).breaks ↔ ∃ h, gap s.xs[b - 1] s.xs[b] = Bool.true
+constructor Inkproof.Core.Segmented.mk : {α : Type u} → {β : Type v} → [inst : LE α] → (series : Inkproof.Core.Series α β) → (breaks : Array Nat) → (∀ (i : Nat) (h : i + 1 < breaks.size), breaks[i] < breaks[i + 1]) → (∀ (i : Nat) (h : i < breaks.size), 0 < breaks[i] ∧ breaks[i] < series.size) → Inkproof.Core.Segmented α β
+def Inkproof.Core.Segmented.numSegments : {α : Type u} → {β : Type v} → [inst : LE α] → Inkproof.Core.Segmented α β → Nat
+def Inkproof.Core.Segmented.ofBreaks? : {α : Type u} → {β : Type v} → [inst : LE α] → Inkproof.Core.Series α β → Array Nat → Except Inkproof.Core.SegmentError (Inkproof.Core.Segmented α β)
+theorem Inkproof.Core.Segmented.ofBreaks?_eq_ok : ∀ {α : Type u} {β : Type v} [inst : LE α] {s : Inkproof.Core.Series α β} {bs : Array Nat} {g : Inkproof.Core.Segmented α β}, Inkproof.Core.Segmented.ofBreaks? s bs = Except.ok g → g.series = s ∧ g.breaks = bs
+theorem Inkproof.Core.Segmented.ofBreaks?_ok_iff : ∀ {α : Type u} {β : Type v} [inst : LE α] {s : Inkproof.Core.Series α β} {bs : Array Nat}, (∃ g, Inkproof.Core.Segmented.ofBreaks? s bs = Except.ok g) ↔ (∀ (i : Nat) (h : i + 1 < bs.size), bs[i] < bs[i + 1]) ∧ ∀ (i : Nat) (h : i < bs.size), 0 < bs[i] ∧ bs[i] < s.size
+def Inkproof.Core.Segmented.segment : {α : Type u} → {β : Type v} → [inst : LE α] → Inkproof.Core.Segmented α β → Nat → Inkproof.Core.Series α β
+def Inkproof.Core.Segmented.segmentStart : {α : Type u} → {β : Type v} → [inst : LE α] → Inkproof.Core.Segmented α β → Nat → Nat
+theorem Inkproof.Core.Segmented.segmentStart_le_segmentStop : ∀ {α : Type u} {β : Type v} [inst : LE α] (g : Inkproof.Core.Segmented α β) (k : Nat), g.segmentStart k ≤ g.segmentStop k
+theorem Inkproof.Core.Segmented.segmentStart_lt_segmentStop : ∀ {α : Type u} {β : Type v} [inst : LE α] (g : Inkproof.Core.Segmented α β) {k : Nat}, k < g.numSegments → g.segmentStart k < g.segmentStop k
+theorem Inkproof.Core.Segmented.segmentStart_succ : ∀ {α : Type u} {β : Type v} [inst : LE α] (g : Inkproof.Core.Segmented α β) (k : Nat), g.segmentStart (k + 1) = g.segmentStop k
+theorem Inkproof.Core.Segmented.segmentStart_zero : ∀ {α : Type u} {β : Type v} [inst : LE α] (g : Inkproof.Core.Segmented α β), g.segmentStart 0 = 0
+def Inkproof.Core.Segmented.segmentStop : {α : Type u} → {β : Type v} → [inst : LE α] → Inkproof.Core.Segmented α β → Nat → Nat
+theorem Inkproof.Core.Segmented.segmentStop_le_size : ∀ {α : Type u} {β : Type v} [inst : LE α] (g : Inkproof.Core.Segmented α β) (k : Nat), g.segmentStop k ≤ g.series.size
+def Inkproof.Core.Segmented.segments : {α : Type u} → {β : Type v} → [inst : LE α] → Inkproof.Core.Segmented α β → Array (Inkproof.Core.Series α β)
+field Inkproof.Core.Segmented.series : {α : Type u} → {β : Type v} → [inst : LE α] → Inkproof.Core.Segmented α β → Inkproof.Core.Series α β
+def Inkproof.Core.Segmented.single : {α : Type u} → {β : Type v} → [inst : LE α] → Inkproof.Core.Series α β → Inkproof.Core.Segmented α β
+def Inkproof.Core.Segmented.splitWhere : {α : Type u} → {β : Type v} → [inst : LE α] → Inkproof.Core.Series α β → (α → α → Bool) → Inkproof.Core.Segmented α β
+structure Inkproof.Core.Series : (α : Type u) → Type v → [LE α] → Type (max u v)
+instance Inkproof.Core.Series.instEmptyCollection : {α : Type u} → {β : Type v} → [inst : LE α] → EmptyCollection (Inkproof.Core.Series α β)
+instance Inkproof.Core.Series.instInhabited : {α : Type u} → {β : Type v} → [inst : LE α] → Inhabited (Inkproof.Core.Series α β)
+constructor Inkproof.Core.Series.mk : {α : Type u} → {β : Type v} → [inst : LE α] → (xs : Array α) → (values : Array (Option β)) → values.size = xs.size → Inkproof.Core.Sorted xs → Inkproof.Core.Series α β
+def Inkproof.Core.Series.ofArrays? : {α : Type u} → {β : Type v} → [inst : LE α] → [DecidableLE α] → [Std.IsPreorder α] → Array α → Array (Option β) → Except Inkproof.Core.SeriesError (Inkproof.Core.Series α β)
+theorem Inkproof.Core.Series.ofArrays?_eq_error_sizeMismatch : ∀ {α : Type u} {β : Type v} [inst : LE α] [inst_1 : DecidableLE α] [inst_2 : Std.IsPreorder α] {xs : Array α} {vs : Array (Option β)} {a b : Nat}, Inkproof.Core.Series.ofArrays? xs vs = Except.error (Inkproof.Core.SeriesError.sizeMismatch a b) → a = xs.size ∧ b = vs.size ∧ vs.size ≠ xs.size
+theorem Inkproof.Core.Series.ofArrays?_eq_error_unsorted : ∀ {α : Type u} {β : Type v} [inst : LE α] [inst_1 : DecidableLE α] [inst_2 : Std.IsPreorder α] {xs : Array α} {vs : Array (Option β)} {i : Nat}, Inkproof.Core.Series.ofArrays? xs vs = Except.error (Inkproof.Core.SeriesError.unsorted i) → ∃ hi, ¬xs[i] ≤ xs[i + 1] ∧ ∀ (j : Nat) (hj : j < i), xs[j] ≤ xs[j + 1]
+theorem Inkproof.Core.Series.ofArrays?_eq_ok : ∀ {α : Type u} {β : Type v} [inst : LE α] [inst_1 : DecidableLE α] [inst_2 : Std.IsPreorder α] {xs : Array α} {vs : Array (Option β)} {s : Inkproof.Core.Series α β}, Inkproof.Core.Series.ofArrays? xs vs = Except.ok s → s.xs = xs ∧ s.values = vs
+theorem Inkproof.Core.Series.ofArrays?_ok_iff : ∀ {α : Type u} {β : Type v} [inst : LE α] [inst_1 : DecidableLE α] [inst_2 : Std.IsPreorder α] {xs : Array α} {vs : Array (Option β)}, (∃ s, Inkproof.Core.Series.ofArrays? xs vs = Except.ok s) ↔ vs.size = xs.size ∧ Inkproof.Core.Sorted xs
+def Inkproof.Core.Series.ofPoints? : {α : Type u} → {β : Type v} → [inst : LE α] → [DecidableLE α] → [Std.IsPreorder α] → Array (α × Option β) → Except Inkproof.Core.SeriesError (Inkproof.Core.Series α β)
+theorem Inkproof.Core.Series.ofPoints?_eq_ok : ∀ {α : Type u} {β : Type v} [inst : LE α] [inst_1 : DecidableLE α] [inst_2 : Std.IsPreorder α] {ps : Array (α × Option β)} {s : Inkproof.Core.Series α β}, Inkproof.Core.Series.ofPoints? ps = Except.ok s → s.points = ps
+theorem Inkproof.Core.Series.ofPoints?_ok_iff : ∀ {α : Type u} {β : Type v} [inst : LE α] [inst_1 : DecidableLE α] [inst_2 : Std.IsPreorder α] {ps : Array (α × Option β)}, (∃ s, Inkproof.Core.Series.ofPoints? ps = Except.ok s) ↔ Inkproof.Core.Sorted (Array.map (fun x => x.fst) ps)
+def Inkproof.Core.Series.ofUnsorted : {α : Type u} → {β : Type v} → [inst : LE α] → [DecidableLE α] → [Std.IsLinearOrder α] → Array (α × Option β) → Inkproof.Core.Series α β
+theorem Inkproof.Core.Series.ofUnsorted_perm : ∀ {α : Type u} {β : Type v} [inst : LE α] [inst_1 : DecidableLE α] [inst_2 : Std.IsLinearOrder α] {ps : Array (α × Option β)}, (Inkproof.Core.Series.ofUnsorted ps).points.toList.Perm ps.toList
+theorem Inkproof.Core.Series.ofUnsorted_stable : ∀ {α : Type u} {β : Type v} [inst : LE α] [inst_1 : DecidableLE α] [inst_2 : Std.IsLinearOrder α] {ps : Array (α × Option β)} {p q : α × Option β}, p.fst ≤ q.fst → [p, q].Sublist ps.toList → [p, q].Sublist (Inkproof.Core.Series.ofUnsorted ps).points.toList
+def Inkproof.Core.Series.points : {α : Type u} → {β : Type v} → [inst : LE α] → Inkproof.Core.Series α β → Array (α × Option β)
+theorem Inkproof.Core.Series.points_ofUnsorted : ∀ {α : Type u} {β : Type v} [inst : LE α] [inst_1 : DecidableLE α] [inst_2 : Std.IsLinearOrder α] {ps : Array (α × Option β)}, (Inkproof.Core.Series.ofUnsorted ps).points.toList = ps.toList.mergeSort fun p q => Decidable.decide (p.fst ≤ q.fst)
+theorem Inkproof.Core.Series.points_slice : ∀ {α : Type u} {β : Type v} [inst : LE α] (s : Inkproof.Core.Series α β) (lo hi : Nat), (s.slice lo hi).points = s.points.extract lo hi
+def Inkproof.Core.Series.size : {α : Type u} → {β : Type v} → [inst : LE α] → Inkproof.Core.Series α β → Nat
+theorem Inkproof.Core.Series.size_eq : ∀ {α : Type u} {β : Type v} [inst : LE α] (self : Inkproof.Core.Series α β), self.values.size = self.xs.size
+theorem Inkproof.Core.Series.size_points : ∀ {α : Type u} {β : Type v} [inst : LE α] (s : Inkproof.Core.Series α β), s.points.size = s.size
+def Inkproof.Core.Series.slice : {α : Type u} → {β : Type v} → [inst : LE α] → Inkproof.Core.Series α β → Nat → Nat → Inkproof.Core.Series α β
+theorem Inkproof.Core.Series.sorted : ∀ {α : Type u} {β : Type v} [inst : LE α] (self : Inkproof.Core.Series α β), Inkproof.Core.Sorted self.xs
+def Inkproof.Core.Series.value : {α : Type u} → {β : Type v} → [inst : LE α] → (s : Inkproof.Core.Series α β) → Fin s.size → Option β
+field Inkproof.Core.Series.values : {α : Type u} → {β : Type v} → [inst : LE α] → Inkproof.Core.Series α β → Array (Option β)
+def Inkproof.Core.Series.x : {α : Type u} → {β : Type v} → [inst : LE α] → (s : Inkproof.Core.Series α β) → Fin s.size → α
+field Inkproof.Core.Series.xs : {α : Type u} → {β : Type v} → [inst : LE α] → Inkproof.Core.Series α β → Array α
+inductive Inkproof.Core.SeriesError : Type
+constructor Inkproof.Core.SeriesError.sizeMismatch : Nat → Nat → Inkproof.Core.SeriesError
+constructor Inkproof.Core.SeriesError.unsorted : Nat → Inkproof.Core.SeriesError
+def Inkproof.Core.Sorted : {α : Type u} → [LE α] → Array α → Prop
+structure Inkproof.Core.Total : Type u → Type u
+theorem Inkproof.Core.Total.fold_get : ∀ {γ : Type v} {α : Type u} [inst : Add α] [inst_1 : OfNat α 0] [Std.Associative fun x1 x2 => x1 + x2] [Std.LawfulIdentity (fun x1 x2 => x1 + x2) 0] (m : γ → Inkproof.Core.Total α) (xs : Array γ), (Inkproof.Core.Aggregate.fold m xs).get = List.foldr (fun x1 x2 => x1 + x2) 0 (List.map (fun x => (m x).get) xs.toList)
+field Inkproof.Core.Total.get : {α : Type u} → Inkproof.Core.Total α → α
+constructor Inkproof.Core.Total.mk : {α : Type u} → α → Inkproof.Core.Total α
+instance Inkproof.Core.instAggregateCount : Inkproof.Core.Aggregate Inkproof.Core.Count
+instance Inkproof.Core.instAggregateFirst : {α : Type u} → Inkproof.Core.Aggregate (Inkproof.Core.First α)
+instance Inkproof.Core.instAggregateLast : {α : Type u} → Inkproof.Core.Aggregate (Inkproof.Core.Last α)
+instance Inkproof.Core.instAggregateMaximum : {α : Type u} → [inst : LE α] → [DecidableLE α] → Inkproof.Core.Aggregate (Inkproof.Core.Maximum α)
+instance Inkproof.Core.instAggregateMinimum : {α : Type u} → [inst : LE α] → [DecidableLE α] → Inkproof.Core.Aggregate (Inkproof.Core.Minimum α)
+instance Inkproof.Core.instAggregateOccupancy : Inkproof.Core.Aggregate Inkproof.Core.Occupancy
+instance Inkproof.Core.instAggregateProd : {A : Type u} → {B : Type v} → [Inkproof.Core.Aggregate A] → [Inkproof.Core.Aggregate B] → Inkproof.Core.Aggregate (A × B)
+instance Inkproof.Core.instAggregateTotalOfAddOfOfNatOfNatNat : {α : Type u} → [Add α] → [OfNat α 0] → Inkproof.Core.Aggregate (Inkproof.Core.Total α)
+instance Inkproof.Core.instBEqCount : BEq Inkproof.Core.Count
+def Inkproof.Core.instBEqCount.beq : Inkproof.Core.Count → Inkproof.Core.Count → Bool
+instance Inkproof.Core.instBEqFirst : {α : Type u_1} → [BEq α] → BEq (Inkproof.Core.First α)
+def Inkproof.Core.instBEqFirst.beq : {α : Type u_1} → [BEq α] → Inkproof.Core.First α → Inkproof.Core.First α → Bool
+instance Inkproof.Core.instBEqLast : {α : Type u_1} → [BEq α] → BEq (Inkproof.Core.Last α)
+def Inkproof.Core.instBEqLast.beq : {α : Type u_1} → [BEq α] → Inkproof.Core.Last α → Inkproof.Core.Last α → Bool
+instance Inkproof.Core.instBEqMaximum : {α : Type u_1} → [BEq α] → BEq (Inkproof.Core.Maximum α)
+def Inkproof.Core.instBEqMaximum.beq : {α : Type u_1} → [BEq α] → Inkproof.Core.Maximum α → Inkproof.Core.Maximum α → Bool
+instance Inkproof.Core.instBEqMinimum : {α : Type u_1} → [BEq α] → BEq (Inkproof.Core.Minimum α)
+def Inkproof.Core.instBEqMinimum.beq : {α : Type u_1} → [BEq α] → Inkproof.Core.Minimum α → Inkproof.Core.Minimum α → Bool
+instance Inkproof.Core.instBEqOccupancy : BEq Inkproof.Core.Occupancy
+def Inkproof.Core.instBEqOccupancy.beq : Inkproof.Core.Occupancy → Inkproof.Core.Occupancy → Bool
+instance Inkproof.Core.instBEqTotal : {α : Type u_1} → [BEq α] → BEq (Inkproof.Core.Total α)
+def Inkproof.Core.instBEqTotal.beq : {α : Type u_1} → [BEq α] → Inkproof.Core.Total α → Inkproof.Core.Total α → Bool
+instance Inkproof.Core.instDecidableEqSegmentError : DecidableEq Inkproof.Core.SegmentError
+def Inkproof.Core.instDecidableEqSegmentError.decEq : (x x_1 : Inkproof.Core.SegmentError) → Decidable (x = x_1)
+instance Inkproof.Core.instDecidableEqSeriesError : DecidableEq Inkproof.Core.SeriesError
+def Inkproof.Core.instDecidableEqSeriesError.decEq : (x x_1 : Inkproof.Core.SeriesError) → Decidable (x = x_1)
+theorem Inkproof.Core.instLawfulAggregateCount : Inkproof.Core.LawfulAggregate Inkproof.Core.Count
+theorem Inkproof.Core.instLawfulAggregateFirst : ∀ {α : Type u}, Inkproof.Core.LawfulAggregate (Inkproof.Core.First α)
+theorem Inkproof.Core.instLawfulAggregateLast : ∀ {α : Type u}, Inkproof.Core.LawfulAggregate (Inkproof.Core.Last α)
+theorem Inkproof.Core.instLawfulAggregateMaximum : ∀ {α : Type u} [inst : LE α] [inst_1 : DecidableLE α] [Std.IsLinearOrder α], Inkproof.Core.LawfulAggregate (Inkproof.Core.Maximum α)
+theorem Inkproof.Core.instLawfulAggregateMinimum : ∀ {α : Type u} [inst : LE α] [inst_1 : DecidableLE α] [Std.IsLinearOrder α], Inkproof.Core.LawfulAggregate (Inkproof.Core.Minimum α)
+theorem Inkproof.Core.instLawfulAggregateOccupancy : Inkproof.Core.LawfulAggregate Inkproof.Core.Occupancy
+theorem Inkproof.Core.instLawfulAggregateProd : ∀ {A : Type u} {B : Type v} [inst : Inkproof.Core.Aggregate A] [inst_1 : Inkproof.Core.Aggregate B] [Inkproof.Core.LawfulAggregate A] [Inkproof.Core.LawfulAggregate B], Inkproof.Core.LawfulAggregate (A × B)
+theorem Inkproof.Core.instLawfulAggregateTotalOfAssociativeOfLawfulIdentityHAddOfNat : ∀ {α : Type u} [inst : Add α] [inst_1 : OfNat α 0] [Std.Associative fun x1 x2 => x1 + x2] [Std.LawfulIdentity (fun x1 x2 => x1 + x2) 0], Inkproof.Core.LawfulAggregate (Inkproof.Core.Total α)
+instance Inkproof.Core.instReprCount : Repr Inkproof.Core.Count
+def Inkproof.Core.instReprCount.repr : Inkproof.Core.Count → Nat → Std.Format
+instance Inkproof.Core.instReprFirst : {α : Type u_1} → [Repr α] → Repr (Inkproof.Core.First α)
+def Inkproof.Core.instReprFirst.repr : {α : Type u_1} → [Repr α] → Inkproof.Core.First α → Nat → Std.Format
+instance Inkproof.Core.instReprLast : {α : Type u_1} → [Repr α] → Repr (Inkproof.Core.Last α)
+def Inkproof.Core.instReprLast.repr : {α : Type u_1} → [Repr α] → Inkproof.Core.Last α → Nat → Std.Format
+instance Inkproof.Core.instReprMaximum : {α : Type u_1} → [Repr α] → Repr (Inkproof.Core.Maximum α)
+def Inkproof.Core.instReprMaximum.repr : {α : Type u_1} → [Repr α] → Inkproof.Core.Maximum α → Nat → Std.Format
+instance Inkproof.Core.instReprMinimum : {α : Type u_1} → [Repr α] → Repr (Inkproof.Core.Minimum α)
+def Inkproof.Core.instReprMinimum.repr : {α : Type u_1} → [Repr α] → Inkproof.Core.Minimum α → Nat → Std.Format
+instance Inkproof.Core.instReprOccupancy : Repr Inkproof.Core.Occupancy
+def Inkproof.Core.instReprOccupancy.repr : Inkproof.Core.Occupancy → Nat → Std.Format
+instance Inkproof.Core.instReprSegmentError : Repr Inkproof.Core.SegmentError
+def Inkproof.Core.instReprSegmentError.repr : Inkproof.Core.SegmentError → Nat → Std.Format
+instance Inkproof.Core.instReprSeriesError : Repr Inkproof.Core.SeriesError
+def Inkproof.Core.instReprSeriesError.repr : Inkproof.Core.SeriesError → Nat → Std.Format
+instance Inkproof.Core.instReprTotal : {α : Type u_1} → [Repr α] → Repr (Inkproof.Core.Total α)
+def Inkproof.Core.instReprTotal.repr : {α : Type u_1} → [Repr α] → Inkproof.Core.Total α → Nat → Std.Format
+theorem Inkproof.Core.sorted_empty : ∀ {α : Type u} [inst : LE α], Inkproof.Core.Sorted #[]
+theorem Inkproof.Core.sorted_of_le_succ : ∀ {α : Type u} [inst : LE α] [Std.IsPreorder α] {xs : Array α}, (∀ (i : Nat) (hi : i + 1 < xs.size), xs[i] ≤ xs[i + 1]) → Inkproof.Core.Sorted xs
+theorem Inkproof.Core.sorted_of_pairwise : ∀ {α : Type u} [inst : LE α] {xs : Array α}, List.Pairwise (fun x1 x2 => x1 ≤ x2) xs.toList → Inkproof.Core.Sorted xs
