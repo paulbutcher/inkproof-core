@@ -44,7 +44,24 @@ jobs:
             exit 1
           fi
 
+      # Lasm tests run where the test subproject pins Lasm in test/package-lock.json.
+      - name: Install Node for Lasm
+        if: hashFiles('test/package-lock.json') != ''
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: test/package-lock.json
+
+      - name: Install Lasm
+        if: hashFiles('test/package-lock.json') != ''
+        working-directory: test
+        run: npm ci --no-fund --no-audit
+
       - name: Tests
+        env:
+          # Fail, rather than skip with a warning, if Lasm is pinned but missing.
+          INKPROOF_REQUIRE_LASM: ${{ hashFiles('test/package-lock.json') != '' && '1' || '' }}
         run: lake test
 
       - name: API lock is up to date
