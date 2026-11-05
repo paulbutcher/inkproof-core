@@ -13,7 +13,7 @@ Inkproof.Core holds sorted series with explicit missing data and gaps, mergeable
 ## Generic foundations
 
 - Algorithms and theorems are stated over any type with a linear order and any monoid (FP-1), and concrete types enter only as instances.
-- Without Mathlib, orders use Lean core's `LE`, `LT` and `Std.IsLinearOrder`, and a monoid is an associative operation with an identity, stated with core's `Std.Associative` and `Std.LawfulIdentity`. If the human adopts Mathlib, its `LinearOrder` and `Monoid` replace these, so instances consumers already have apply directly.
+- The library does not use Mathlib, which would add its build to every consumer's. Orders use Lean core's `LE`, `LT` and `Std.IsLinearOrder`, and a monoid is an associative operation with an identity, stated with core's `Std.Associative` and `Std.LawfulIdentity`. A proof that seems to need Mathlib goes to the human for a decision rather than adding it.
 - A hypothesis appears only where a proof needs it. Commutativity, decidable equality and arithmetic on the x-domain are never assumed by default; VAL-1 instances in the test subproject check this.
 
 ## Series, missing data and gaps
@@ -54,4 +54,4 @@ Inkproof.Core holds sorted series with explicit missing data and gaps, mergeable
 
 - `scripts/api-lock.sh` prints one line per public declaration of `Inkproof.Core`: kind, full name and type, sorted. Theorem statements are the theorem's type. CI compares the output with `API.lock`, and CODEOWNERS sends changes to the human.
 - Private names, compiler auxiliaries (matchers, recursors, `noConfusion`, equation lemmas) and other declarations derived from a listed one are left out.
-- Another library uses it through its dependency on Core: `lake exe api-lock <its root module>` after `lake build`.
+- Every Inkproof library uses this generator through its dependency on Core, `lake exe api-lock <its root module>` after `lake build`, so its command line and line format are a contract with all of them: changing either changes every library's `API.lock`.
