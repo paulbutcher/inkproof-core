@@ -13,7 +13,7 @@ when that declaration does, which its own line already records. -/
 private def derivedSuffixes : List String :=
   ["rec", "recOn", "casesOn", "below", "brecOn", "binductionOn", "ibelow", "noConfusion",
    "noConfusionType", "inj", "injEq", "sizeOf_spec", "ctorIdx", "ctorElim", "ctorElimType",
-   "eq_def", "eq_unfold"]
+   "eq_def", "eq_unfold", "congr_simp"]
 
 private def isDerivedName (n : Name) : Bool :=
   match n with
