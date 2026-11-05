@@ -198,6 +198,82 @@ theorem div_lt_size_levels (p : Pyramid M) {i : Nat} (hi : i < p.leaves.size) {k
   rw [p.levels_eq k hk]
   exact div_lt_size_levelAt (by have := p.two_le_branching; omega) _ hi k
 
+/-! The shape `build` gives a pyramid: levels shrink until one node remains, so a query can take
+whole groups from the level above all the way to the top. -/
+
+omit [LawfulAggregate M] in
+theorem buildLevels_ne_nil (b : Nat) (hb : 2 ≤ b) (a : Array M) : buildLevels b hb a ≠ [] := by
+  rw [buildLevels.eq_def]
+  split <;> simp
+
+omit [LawfulAggregate M] in
+theorem buildLevels_getElem?_shape (b : Nat) (hb : 2 ≤ b) (n : Nat) :
+    ∀ (a : Array M), a.size ≤ n → ∀ k x, (buildLevels b hb a)[k]? = some x →
+      if (buildLevels b hb a)[k + 1]?.isSome then 2 ≤ x.size else x.size ≤ 1 := by
+  induction n with
+  | zero =>
+    intro a hn k x h
+    rw [buildLevels.eq_def] at h ⊢
+    split at h
+    · omega
+    · rename_i ha
+      simp only [ha, dite_false]
+      cases k <;> simp_all
+  | succ n ih =>
+    intro a hn k x h
+    rw [buildLevels.eq_def] at h ⊢
+    split at h
+    · rename_i ha
+      simp only [ha, dite_true]
+      cases k with
+      | zero =>
+        simp only [List.getElem?_cons_zero, Option.some.injEq] at h
+        subst h
+        have := buildLevels_ne_nil b hb (coarsen b a)
+        cases hl : buildLevels b hb (coarsen b a) with
+        | nil => contradiction
+        | cons y ys => simpa using ha
+      | succ k =>
+        simp only [List.getElem?_cons_succ] at h ⊢
+        exact ih _ (by have := size_coarsen_lt hb ha; omega) k x h
+    · rename_i ha
+      simp only [ha, dite_false]
+      cases k <;> simp_all
+      omega
+
+omit [LawfulAggregate M] in
+theorem levels_build_size_pos (b : Nat) (h : 2 ≤ b) (a : Array M) :
+    0 < (build b h a).levels.size := by
+  have := buildLevels_ne_nil b h a
+  simp only [build, List.size_toArray]
+  exact List.length_pos_iff.mpr this
+
+omit [LawfulAggregate M] in
+/-- Every level of a built pyramid below the top has at least two nodes, so each level is smaller
+than the one below it. -/
+theorem two_le_size_levels_build (b : Nat) (h : 2 ≤ b) (a : Array M) {k : Nat}
+    (hk : k + 1 < (build b h a).levels.size) : 2 ≤ ((build b h a).levels[k]'(by omega)).size := by
+  have hshape := buildLevels_getElem?_shape b h a.size a (Nat.le_refl _) k
+    ((build b h a).levels[k]'(by omega)) (by simp [build])
+  simp only [build, List.size_toArray] at hk
+  split at hshape
+  · exact hshape
+  · rename_i hn
+    simp [List.getElem?_eq_getElem hk] at hn
+
+omit [LawfulAggregate M] in
+/-- The top level of a built pyramid has at most one node: the merge of every leaf, or none when
+there are no leaves. -/
+theorem size_top_levels_build (b : Nat) (h : 2 ≤ b) (a : Array M) {k : Nat}
+    (hk : k + 1 = (build b h a).levels.size) : ((build b h a).levels[k]'(by omega)).size ≤ 1 := by
+  have hshape := buildLevels_getElem?_shape b h a.size a (Nat.le_refl _) k
+    ((build b h a).levels[k]'(by omega)) (by simp [build])
+  simp only [build, List.size_toArray] at hk
+  split at hshape
+  · rename_i hs
+    simp [List.getElem?_eq_none (show (buildLevels b h a).length ≤ k + 1 by omega)] at hs
+  · exact hshape
+
 end Pyramid
 
 end Inkproof.Core

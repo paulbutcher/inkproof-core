@@ -100,7 +100,8 @@ theorem buildLevels_getElem (b : Nat) (hb : 2 ≤ b) (a : Array M) (k : Nat)
     (h : k < (buildLevels b hb a).length) : (buildLevels b hb a)[k] = levelAt b a k :=
   buildLevels_getElem? b hb a.size a (Nat.le_refl _) k _ (List.getElem?_eq_getElem h)
 
-/-- Builds the pyramid over `leaves`, with nodes merging `branching` children. -/
+/-- Builds the pyramid over `leaves`, with nodes merging `branching` children. Levels shrink until
+the top has at most one node (`two_le_size_levels_build`, `size_top_levels_build`). -/
 def build (branching : Nat) (h : 2 ≤ branching) (leaves : Array M) : Pyramid M :=
   { branching, two_le_branching := h, leaves
     levels := (buildLevels branching h leaves).toArray
@@ -127,8 +128,9 @@ def queryFrom (levels : Array (Array M)) (b k lo hi : Nat) : M :=
   else empty
 termination_by levels.size - k
 
-/-- Merges the measures of points `lo` to `hi - 1`, reading at most `2 * (branching - 1)` nodes
-per level. Equal to merging them one by one (`Pyramid.query_eq`). -/
+/-- Merges the measures of points `lo` to `hi - 1`, with the same result as merging them one by one
+(`Pyramid.query_eq`). Each level contributes only its nodes before the first and after the last
+whole group in the range; the groups between come from the level above. -/
 def query (p : Pyramid M) (lo hi : Nat) : M :=
   if p.levels.size = 0 then foldRange p.leaves lo hi
   else queryFrom p.levels p.branching 0 lo hi
