@@ -21,14 +21,16 @@ Inkproof.Core holds sorted series with explicit missing data and gaps, mergeable
 - A series stores x-values and values as two parallel arrays, with a proof that the x-values are non-decreasing (CORE-1). Repeated x-values are allowed, since data often has them.
 - Values have type `Option β`: a missing value is `none`, never NaN or a sentinel (CORE-2). Aggregation sees the `none` and decides what it contributes.
 - A validated constructor checks sortedness and reports the first offending index. A second constructor establishes it with a stable sort, so equal x-values keep their input order (CORE-1).
-- A segmented series is an ordered array of series, each a contiguous run with no gap inside it (CORE-3). It is built from explicit boundaries, or by splitting at every adjacent pair a caller-supplied predicate marks as a gap. The library never infers a gap.
+- A segmented series is one series plus strictly increasing break indices, each the first point of a new segment, so no segment is empty (CORE-3). It is built from explicit breaks, or by splitting at every adjacent pair a caller-supplied predicate marks as a gap. The library never infers a gap.
 - Algorithms read points through index access, never a particular container, so the indexable-series interface (CORE-8) can supply float arrays or byte buffers without copying.
 
 ## Aggregates
 
-- An aggregate is a monoid together with a measure that maps one point (x-value and optional value) to the monoid; most measures send a missing value to the identity (CORE-5).
-- Provided monoids: min and max (`Option`, with `none` as the identity), first and last (not commutative), count, sum, pixel-occupancy sets (union), and products of any of these, such as first/max/min/last.
-- Sum is a lawful monoid only for types whose addition is associative, such as integers. Summing floats is not associative, so float sums carry no exactness theorem; error bounds belong with FP-3.
+- `Aggregate` gives an aggregate type `empty` and an order-preserving `merge`. `LawfulAggregate` adds the monoid laws, stated with core's `Std.Associative` and `Std.LawfulIdentity`, and every exactness theorem assumes it (CORE-5).
+- Data enters through a measure from a point to the aggregate. The provided aggregates wrap `Option`, so a missing value measures as `empty` with no special case.
+- Provided: `Minimum` and `Maximum` (ties keep the earliest), `First` and `Last` (not commutative), `Count`, `Total`, `Occupancy` (a set of pixel indices as a bitmask; merging is union), and pairs of any of these, such as first/max/min/last.
+- `Inkproof.Core.Proofs.Aggregate` proves what each aggregate computes (the minimum, the first present value, the union and so on), and that a fold of pairs is the pair of folds. The laws alone would not show that an aggregate called `Maximum` is the maximum.
+- `Total` is lawful only where addition is associative with `0` as identity, such as `Nat` and `Int`. Float sums get `Aggregate` but not `LawfulAggregate`, so they carry no exactness theorem; error bounds belong with FP-3.
 
 ## Pyramids
 
@@ -53,5 +55,5 @@ Inkproof.Core holds sorted series with explicit missing data and gaps, mergeable
 ## API lock
 
 - `scripts/api-lock.sh` prints one line per public declaration of `Inkproof.Core`: kind, full name and type, sorted. Theorem statements are the theorem's type. CI compares the output with `API.lock`, and CODEOWNERS sends changes to the human.
-- Private names, compiler auxiliaries (matchers, recursors, `noConfusion`, equation lemmas) and other declarations derived from a listed one are left out.
+- Private names, modules with an `Internal` component (which no consumer may import), compiler auxiliaries (matchers, recursors, `noConfusion`, equation lemmas) and other declarations derived from a listed one are left out.
 - Every Inkproof library uses this generator through its dependency on Core, `lake exe api-lock <its root module>` after `lake build`, so its command line and line format are a contract with all of them: changing either changes every library's `API.lock`.
