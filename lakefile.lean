@@ -15,7 +15,6 @@ package «inkproof-core» where
 @[default_target]
 lean_lib InkproofCore where
   roots := #[`Inkproof.Core]
-  globs := #[.andSubmodules `Inkproof.Core]
 
 -- Development tooling, shipped so every Inkproof library can run it from its
 -- dependency on this package rather than keeping a copy.
