@@ -99,4 +99,17 @@ example (m : Nat → Option Opaque) (xs : Array Nat) :
     (Aggregate.fold (First.mk ∘ m) xs).get = xs.toList.findSome? m :=
   First.fold_get _ xs
 
+/-- PROOF-1 with a non-commutative aggregate over a value type with no instances: the pyramid's
+answer is the first and last value in the range, in order. -/
+example (m : Nat → Option Opaque) (xs : Array Nat) (lo hi : Nat) :
+    (Pyramid.ofMeasure 3 (by decide) (fun x => (First.mk (m x), Last.mk (m x))) xs).query lo hi =
+      Aggregate.fold (fun x => (First.mk (m x), Last.mk (m x))) (xs.extract lo hi) :=
+  Pyramid.query_ofMeasure 3 (by decide) _ xs lo hi
+
+/-- PROOF-2 over the order-only x-type: every node holds the minimum of its bucket. -/
+example (p : Pyramid (Minimum OrderOnly)) (k j : Nat) (hk : k < p.levels.size)
+    (hj : j < p.levels[k].size) :
+    p.levels[k][j] = Aggregate.foldRange p.leaves (j * p.branching ^ k) ((j + 1) * p.branching ^ k) :=
+  Pyramid.getElem_levels p hk hj
+
 end InkproofCoreTest.Minimal
