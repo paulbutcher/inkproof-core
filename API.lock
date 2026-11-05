@@ -1,15 +1,20 @@
 class Inkproof.Core.Aggregate : Type u → Type u
 field Inkproof.Core.Aggregate.empty : {M : Type u} → [self : Inkproof.Core.Aggregate M] → M
 def Inkproof.Core.Aggregate.fold : {M : Type u} → [Inkproof.Core.Aggregate M] → {γ : Type v} → (γ → M) → Array γ → M
+theorem Inkproof.Core.Aggregate.fold_eq_foldr : ∀ {M : Type u} [inst : Inkproof.Core.Aggregate M] {γ : Type v} [Inkproof.Core.LawfulAggregate M] (m : γ → M) (xs : Array γ), Inkproof.Core.Aggregate.fold m xs = List.foldr Inkproof.Core.Aggregate.merge Inkproof.Core.Aggregate.empty (List.map m xs.toList)
+theorem Inkproof.Core.Aggregate.fold_prod : ∀ {γ : Type v} {A : Type u} {B : Type w} [inst : Inkproof.Core.Aggregate A] [inst_1 : Inkproof.Core.Aggregate B] (m₁ : γ → A) (m₂ : γ → B) (xs : Array γ), Inkproof.Core.Aggregate.fold (fun x => (m₁ x, m₂ x)) xs = (Inkproof.Core.Aggregate.fold m₁ xs, Inkproof.Core.Aggregate.fold m₂ xs)
 field Inkproof.Core.Aggregate.merge : {M : Type u} → [self : Inkproof.Core.Aggregate M] → M → M → M
 constructor Inkproof.Core.Aggregate.mk : {M : Type u} → M → (M → M → M) → Inkproof.Core.Aggregate M
 structure Inkproof.Core.Count : Type
+theorem Inkproof.Core.Count.fold_get : ∀ {γ : Type v} (m : γ → Inkproof.Core.Count) (xs : Array γ), (Inkproof.Core.Aggregate.fold m xs).get = (List.map (fun x => (m x).get) xs.toList).sum
 field Inkproof.Core.Count.get : Inkproof.Core.Count → Nat
 constructor Inkproof.Core.Count.mk : Nat → Inkproof.Core.Count
 structure Inkproof.Core.First : Type u → Type u
+theorem Inkproof.Core.First.fold_get : ∀ {γ : Type v} {α : Type u} (m : γ → Inkproof.Core.First α) (xs : Array γ), (Inkproof.Core.Aggregate.fold m xs).get = List.findSome? (fun x => (m x).get) xs.toList
 field Inkproof.Core.First.get : {α : Type u} → Inkproof.Core.First α → Option α
 constructor Inkproof.Core.First.mk : {α : Type u} → Option α → Inkproof.Core.First α
 structure Inkproof.Core.Last : Type u → Type u
+theorem Inkproof.Core.Last.fold_get : ∀ {γ : Type v} {α : Type u} (m : γ → Inkproof.Core.Last α) (xs : Array γ), (Inkproof.Core.Aggregate.fold m xs).get = List.findSome? (fun x => (m x).get) xs.toList.reverse
 field Inkproof.Core.Last.get : {α : Type u} → Inkproof.Core.Last α → Option α
 constructor Inkproof.Core.Last.mk : {α : Type u} → Option α → Inkproof.Core.Last α
 class Inkproof.Core.LawfulAggregate : (M : Type u) → [Inkproof.Core.Aggregate M] → Prop
@@ -21,14 +26,21 @@ theorem Inkproof.Core.LawfulAggregate.of_laws : ∀ {M : Type u} [inst : Inkproo
 theorem Inkproof.Core.LawfulAggregate.toAssociative : ∀ {M : Type u} {inst : Inkproof.Core.Aggregate M} [self : Inkproof.Core.LawfulAggregate M], Std.Associative Inkproof.Core.Aggregate.merge
 theorem Inkproof.Core.LawfulAggregate.toLawfulIdentity : ∀ {M : Type u} {inst : Inkproof.Core.Aggregate M} [self : Inkproof.Core.LawfulAggregate M], Std.LawfulIdentity Inkproof.Core.Aggregate.merge Inkproof.Core.Aggregate.empty
 structure Inkproof.Core.Maximum : Type u → Type u
+theorem Inkproof.Core.Maximum.fold_get_eq_none : ∀ {γ : Type v} {α : Type u} [inst : LE α] [inst_1 : DecidableLE α] [Std.IsLinearOrder α] (m : γ → Inkproof.Core.Maximum α) (xs : Array γ), (Inkproof.Core.Aggregate.fold m xs).get = Option.none ↔ ∀ (x : γ), x ∈ xs → (m x).get = Option.none
+theorem Inkproof.Core.Maximum.fold_get_eq_some : ∀ {γ : Type v} {α : Type u} [inst : LE α] [inst_1 : DecidableLE α] [Std.IsLinearOrder α] (m : γ → Inkproof.Core.Maximum α) (xs : Array γ) (a : α), (Inkproof.Core.Aggregate.fold m xs).get = Option.some a ↔ (∃ x, x ∈ xs ∧ (m x).get = Option.some a) ∧ ∀ (x : γ), x ∈ xs → ∀ (b : α), (m x).get = Option.some b → b ≤ a
 field Inkproof.Core.Maximum.get : {α : Type u} → Inkproof.Core.Maximum α → Option α
 constructor Inkproof.Core.Maximum.mk : {α : Type u} → Option α → Inkproof.Core.Maximum α
 structure Inkproof.Core.Minimum : Type u → Type u
+theorem Inkproof.Core.Minimum.fold_get_eq_none : ∀ {γ : Type v} {α : Type u} [inst : LE α] [inst_1 : DecidableLE α] [Std.IsLinearOrder α] (m : γ → Inkproof.Core.Minimum α) (xs : Array γ), (Inkproof.Core.Aggregate.fold m xs).get = Option.none ↔ ∀ (x : γ), x ∈ xs → (m x).get = Option.none
+theorem Inkproof.Core.Minimum.fold_get_eq_some : ∀ {γ : Type v} {α : Type u} [inst : LE α] [inst_1 : DecidableLE α] [Std.IsLinearOrder α] (m : γ → Inkproof.Core.Minimum α) (xs : Array γ) (a : α), (Inkproof.Core.Aggregate.fold m xs).get = Option.some a ↔ (∃ x, x ∈ xs ∧ (m x).get = Option.some a) ∧ ∀ (x : γ), x ∈ xs → ∀ (b : α), (m x).get = Option.some b → a ≤ b
 field Inkproof.Core.Minimum.get : {α : Type u} → Inkproof.Core.Minimum α → Option α
 constructor Inkproof.Core.Minimum.mk : {α : Type u} → Option α → Inkproof.Core.Minimum α
 structure Inkproof.Core.Occupancy : Type
 field Inkproof.Core.Occupancy.bits : Inkproof.Core.Occupancy → Nat
 def Inkproof.Core.Occupancy.contains : Inkproof.Core.Occupancy → Nat → Bool
+theorem Inkproof.Core.Occupancy.contains_merge : ∀ (a b : Inkproof.Core.Occupancy) (i : Nat), (Inkproof.Core.Aggregate.merge a b).contains i = (a.contains i || b.contains i)
+theorem Inkproof.Core.Occupancy.contains_singleton : ∀ (i j : Nat), (Inkproof.Core.Occupancy.singleton j).contains i = Bool.true ↔ i = j
+theorem Inkproof.Core.Occupancy.fold_contains : ∀ {γ : Type v} (m : γ → Inkproof.Core.Occupancy) (xs : Array γ) (i : Nat), (Inkproof.Core.Aggregate.fold m xs).contains i = Bool.true ↔ ∃ x, x ∈ xs ∧ (m x).contains i = Bool.true
 constructor Inkproof.Core.Occupancy.mk : Nat → Inkproof.Core.Occupancy
 def Inkproof.Core.Occupancy.singleton : Nat → Inkproof.Core.Occupancy
 inductive Inkproof.Core.SegmentError : Type
@@ -89,6 +101,7 @@ constructor Inkproof.Core.SeriesError.sizeMismatch : Nat → Nat → Inkproof.Co
 constructor Inkproof.Core.SeriesError.unsorted : Nat → Inkproof.Core.SeriesError
 def Inkproof.Core.Sorted : {α : Type u} → [LE α] → Array α → Prop
 structure Inkproof.Core.Total : Type u → Type u
+theorem Inkproof.Core.Total.fold_get : ∀ {γ : Type v} {α : Type u} [inst : Add α] [inst_1 : OfNat α 0] [Std.Associative fun x1 x2 => x1 + x2] [Std.LawfulIdentity (fun x1 x2 => x1 + x2) 0] (m : γ → Inkproof.Core.Total α) (xs : Array γ), (Inkproof.Core.Aggregate.fold m xs).get = List.foldr (fun x1 x2 => x1 + x2) 0 (List.map (fun x => (m x).get) xs.toList)
 field Inkproof.Core.Total.get : {α : Type u} → Inkproof.Core.Total α → α
 constructor Inkproof.Core.Total.mk : {α : Type u} → α → Inkproof.Core.Total α
 instance Inkproof.Core.instAggregateCount : Inkproof.Core.Aggregate Inkproof.Core.Count

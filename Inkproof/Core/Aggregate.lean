@@ -25,7 +25,7 @@ namespace Aggregate
 
 variable {M : Type u} [Aggregate M]
 
-/-- Merges the measures of `xs` in order. -/
+/-- Merges the measures of `xs` in order; see `fold_eq_foldr` and `fold_prod`. -/
 def fold {γ : Type v} (measure : γ → M) (xs : Array γ) : M :=
   xs.foldl (fun acc x => merge acc (measure x)) empty
 
@@ -57,38 +57,39 @@ end LawfulAggregate
 
 open Aggregate (empty merge)
 
-/-- The smallest value; on ties, the earliest. -/
+/-- The smallest value (`Minimum.fold_get_eq_some`, `Minimum.fold_get_eq_none`). -/
 structure Minimum (α : Type u) where
   get : Option α
   deriving Repr, BEq
 
-/-- The largest value; on ties, the earliest. -/
+/-- The largest value (`Maximum.fold_get_eq_some`, `Maximum.fold_get_eq_none`). -/
 structure Maximum (α : Type u) where
   get : Option α
   deriving Repr, BEq
 
-/-- The earliest value. -/
+/-- The earliest value (`First.fold_get`). -/
 structure First (α : Type u) where
   get : Option α
   deriving Repr, BEq
 
-/-- The latest value. -/
+/-- The latest value (`Last.fold_get`). -/
 structure Last (α : Type u) where
   get : Option α
   deriving Repr, BEq
 
-/-- The number of items. -/
+/-- The number of items (`Count.fold_get`). -/
 structure Count where
   get : Nat
   deriving Repr, BEq
 
-/-- The sum of the values. -/
+/-- The sum of the values (`Total.fold_get`). -/
 structure Total (α : Type u) where
   get : α
   deriving Repr, BEq
 
 /-- A set of pixel indices, such as the columns or cells some data falls in; merging takes the
-union. Stored as a bitmask, so it suits sets of indices below a few thousand. -/
+union (`Occupancy.fold_contains`). Stored as a bitmask, so it suits sets of indices below a few
+thousand. -/
 structure Occupancy where
   bits : Nat
   deriving Repr, BEq

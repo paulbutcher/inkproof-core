@@ -29,6 +29,7 @@ Inkproof.Core holds sorted series with explicit missing data and gaps, mergeable
 - `Aggregate` gives an aggregate type `empty` and an order-preserving `merge`. `LawfulAggregate` adds the monoid laws, stated with core's `Std.Associative` and `Std.LawfulIdentity`, and every exactness theorem assumes it (CORE-5).
 - Data enters through a measure from a point to the aggregate. The provided aggregates wrap `Option`, so a missing value measures as `empty` with no special case.
 - Provided: `Minimum` and `Maximum` (ties keep the earliest), `First` and `Last` (not commutative), `Count`, `Total`, `Occupancy` (a set of pixel indices as a bitmask; merging is union), and pairs of any of these, such as first/max/min/last.
+- `Inkproof.Core.Proofs.Aggregate` proves what each aggregate computes (the minimum, the first present value, the union and so on), and that a fold of pairs is the pair of folds. The laws alone would not show that an aggregate called `Maximum` is the maximum.
 - `Total` is lawful only where addition is associative with `0` as identity, such as `Nat` and `Int`. Float sums get `Aggregate` but not `LawfulAggregate`, so they carry no exactness theorem; error bounds belong with FP-3.
 
 ## Pyramids

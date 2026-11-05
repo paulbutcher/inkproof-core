@@ -80,4 +80,23 @@ example (g : Segmented OrderOnly Opaque) :
     (g.segments.toList.map (·.points.toList)).flatten = g.series.points.toList :=
   Segmented.flatten_segments g
 
+example (m : Nat → Minimum OrderOnly) (xs : Array Nat) (a : OrderOnly) :
+    (Aggregate.fold m xs).get = some a ↔
+      (∃ x ∈ xs, (m x).get = some a) ∧ ∀ x ∈ xs, ∀ b, (m x).get = some b → a ≤ b :=
+  Minimum.fold_get_eq_some m xs a
+
+example (m : Nat → Maximum OrderOnly) (xs : Array Nat) :
+    (Aggregate.fold m xs).get = none ↔ ∀ x ∈ xs, (m x).get = none :=
+  Maximum.fold_get_eq_none m xs
+
+/-- First/last over a value type with no instances, through the product. -/
+example (m : Nat → Option Opaque) (xs : Array Nat) :
+    Aggregate.fold (fun x => (First.mk (m x), Last.mk (m x))) xs =
+      (Aggregate.fold (First.mk ∘ m) xs, Aggregate.fold (Last.mk ∘ m) xs) :=
+  Aggregate.fold_prod _ _ xs
+
+example (m : Nat → Option Opaque) (xs : Array Nat) :
+    (Aggregate.fold (First.mk ∘ m) xs).get = xs.toList.findSome? m :=
+  First.fold_get _ xs
+
 end InkproofCoreTest.Minimal
