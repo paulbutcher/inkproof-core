@@ -1,0 +1,11 @@
+{
+  "name": "inkproof-core-test",
+  "private": true,
+  "description": "Runs the Inkproof.Core tests compiled with Lasm; development only.",
+  "devDependencies": {
+    "@lasm/cli": "0.3.5"
+  },
+  "engines": {
+    "node": ">=24.0.0"
+  }
+}

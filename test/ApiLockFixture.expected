@@ -1,0 +1,19 @@
+class Fixture.HasArea : Type → Type
+field Fixture.HasArea.area : {α : Type} → [self : Fixture.HasArea α] → α → Nat
+constructor Fixture.HasArea.mk : {α : Type} → (α → Nat) → Fixture.HasArea α
+structure Fixture.Point : Type → Type
+constructor Fixture.Point.mk : {α : Type} → α → α → Fixture.Point α
+field Fixture.Point.x : {α : Type} → Fixture.Point α → α
+field Fixture.Point.y : {α : Type} → Fixture.Point α → α
+inductive Fixture.Shape : Type
+constructor Fixture.Shape.dot : Fixture.Shape
+constructor Fixture.Shape.line : Nat → Fixture.Shape
+axiom Fixture.fixtureAxiom : ∀ (n : Nat), n = n
+instance Fixture.instBEqShape : BEq Fixture.Shape
+def Fixture.instBEqShape.beq : Fixture.Shape → Fixture.Shape → Bool
+instance Fixture.instHasAreaShape : Fixture.HasArea Fixture.Shape
+instance Fixture.instReprShape : Repr Fixture.Shape
+def Fixture.instReprShape.repr : Fixture.Shape → Nat → Std.Format
+opaque Fixture.secret : Nat
+def Fixture.total : List Fixture.Shape → Nat
+theorem Fixture.total_nil : Fixture.total [] = 0
