@@ -43,13 +43,14 @@ private def kind (env : Environment) (n : Name) : ConstantInfo → MetaM String
 private def oneLine (s : String) : String :=
   " ".intercalate (s.splitToList Char.isWhitespace |>.filter (!·.isEmpty))
 
-/-- The public API of every module whose name starts with one of `roots`: one line per public
-declaration giving its kind, name and type, sorted by name. -/
+/-- The public API of every module whose name starts with one of `roots`, except modules with an
+`Internal` component, which no consumer may import: one line per public declaration giving its
+kind, name and type, sorted by name. -/
 def apiLines (roots : Array Name) : MetaM (Array String) := do
   let env ← getEnv
   let inScope (n : Name) : Bool :=
     (env.getModuleIdxFor? n >>= (env.allImportedModuleNames[·.toNat]?)).any
-      fun m => roots.any (·.isPrefixOf m)
+      fun m => roots.any (·.isPrefixOf m) && !m.components.contains `Internal
   let mut lines : Array (Name × String) := #[]
   for (n, ci) in env.constants.map₁.toList do
     unless inScope n do continue
