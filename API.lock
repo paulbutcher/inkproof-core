@@ -20,6 +20,7 @@ structure Inkproof.Core.First : Type u → Type u
 theorem Inkproof.Core.First.fold_get : ∀ {γ : Type v} {α : Type u} (m : γ → Inkproof.Core.First α) (xs : Array γ), (Inkproof.Core.Aggregate.fold m xs).get = List.findSome? (fun x => (m x).get) xs.toList
 field Inkproof.Core.First.get : {α : Type u} → Inkproof.Core.First α → Option α
 constructor Inkproof.Core.First.mk : {α : Type u} → Option α → Inkproof.Core.First α
+def Inkproof.Core.Float.IsOrdered : Float → Prop
 structure Inkproof.Core.Last : Type u → Type u
 theorem Inkproof.Core.Last.fold_get : ∀ {γ : Type v} {α : Type u} (m : γ → Inkproof.Core.Last α) (xs : Array γ), (Inkproof.Core.Aggregate.fold m xs).get = List.findSome? (fun x => (m x).get) xs.toList.reverse
 field Inkproof.Core.Last.get : {α : Type u} → Inkproof.Core.Last α → Option α
@@ -50,6 +51,17 @@ theorem Inkproof.Core.Occupancy.contains_singleton : ∀ (i j : Nat), (Inkproof.
 theorem Inkproof.Core.Occupancy.fold_contains : ∀ {γ : Type v} (m : γ → Inkproof.Core.Occupancy) (xs : Array γ) (i : Nat), (Inkproof.Core.Aggregate.fold m xs).contains i = Bool.true ↔ ∃ x, x ∈ xs ∧ (m x).contains i = Bool.true
 constructor Inkproof.Core.Occupancy.mk : Nat → Inkproof.Core.Occupancy
 def Inkproof.Core.Occupancy.singleton : Nat → Inkproof.Core.Occupancy
+structure Inkproof.Core.OrdFloat : Type
+theorem Inkproof.Core.OrdFloat.ext : ∀ {a b : Inkproof.Core.OrdFloat}, a.val = b.val → a = b
+instance Inkproof.Core.OrdFloat.instDecidableLE : DecidableLE Inkproof.Core.OrdFloat
+theorem Inkproof.Core.OrdFloat.instIsLinearOrder : Std.IsLinearOrder Inkproof.Core.OrdFloat
+instance Inkproof.Core.OrdFloat.instLE : LE Inkproof.Core.OrdFloat
+instance Inkproof.Core.OrdFloat.instRepr : Repr Inkproof.Core.OrdFloat
+instance Inkproof.Core.OrdFloat.instToString : ToString Inkproof.Core.OrdFloat
+constructor Inkproof.Core.OrdFloat.mk : (val : Float) → Inkproof.Core.Float.IsOrdered val → Inkproof.Core.OrdFloat
+def Inkproof.Core.OrdFloat.ofFloat? : Float → Option Inkproof.Core.OrdFloat
+theorem Inkproof.Core.OrdFloat.ordered : ∀ (self : Inkproof.Core.OrdFloat), Inkproof.Core.Float.IsOrdered self.val
+field Inkproof.Core.OrdFloat.val : Inkproof.Core.OrdFloat → Float
 structure Inkproof.Core.Pyramid : (M : Type u) → [Inkproof.Core.Aggregate M] → Type u
 field Inkproof.Core.Pyramid.branching : {M : Type u} → [inst : Inkproof.Core.Aggregate M] → Inkproof.Core.Pyramid M → Nat
 def Inkproof.Core.Pyramid.build : {M : Type u} → [inst : Inkproof.Core.Aggregate M] → (branching : Nat) → 2 ≤ branching → Array M → Inkproof.Core.Pyramid M
@@ -144,6 +156,7 @@ structure Inkproof.Core.Total : Type u → Type u
 theorem Inkproof.Core.Total.fold_get : ∀ {γ : Type v} {α : Type u} [inst : Add α] [inst_1 : OfNat α 0] [Std.Associative fun x1 x2 => x1 + x2] [Std.LawfulIdentity (fun x1 x2 => x1 + x2) 0] (m : γ → Inkproof.Core.Total α) (xs : Array γ), (Inkproof.Core.Aggregate.fold m xs).get = List.foldr (fun x1 x2 => x1 + x2) 0 (List.map (fun x => (m x).get) xs.toList)
 field Inkproof.Core.Total.get : {α : Type u} → Inkproof.Core.Total α → α
 constructor Inkproof.Core.Total.mk : {α : Type u} → α → Inkproof.Core.Total α
+axiom Inkproof.Core.float_le_linear : (∀ (x : Float), Inkproof.Core.Float.IsOrdered x → x ≤ x) ∧ (∀ (x y z : Float), Inkproof.Core.Float.IsOrdered x → Inkproof.Core.Float.IsOrdered y → Inkproof.Core.Float.IsOrdered z → x ≤ y → y ≤ z → x ≤ z) ∧ (∀ (x y : Float), Inkproof.Core.Float.IsOrdered x → Inkproof.Core.Float.IsOrdered y → x ≤ y → y ≤ x → x = y) ∧ ∀ (x y : Float), Inkproof.Core.Float.IsOrdered x → Inkproof.Core.Float.IsOrdered y → x ≤ y ∨ y ≤ x
 instance Inkproof.Core.instAggregateCount : Inkproof.Core.Aggregate Inkproof.Core.Count
 instance Inkproof.Core.instAggregateFirst : {α : Type u} → Inkproof.Core.Aggregate (Inkproof.Core.First α)
 instance Inkproof.Core.instAggregateLast : {α : Type u} → Inkproof.Core.Aggregate (Inkproof.Core.Last α)
@@ -196,6 +209,7 @@ instance Inkproof.Core.instReprSeriesError : Repr Inkproof.Core.SeriesError
 def Inkproof.Core.instReprSeriesError.repr : Inkproof.Core.SeriesError → Nat → Std.Format
 instance Inkproof.Core.instReprTotal : {α : Type u_1} → [Repr α] → Repr (Inkproof.Core.Total α)
 def Inkproof.Core.instReprTotal.repr : {α : Type u_1} → [Repr α] → Inkproof.Core.Total α → Nat → Std.Format
+def Inkproof.Core.negZeroBits : UInt64
 theorem Inkproof.Core.sorted_empty : ∀ {α : Type u} [inst : LE α], Inkproof.Core.Sorted #[]
 theorem Inkproof.Core.sorted_of_le_succ : ∀ {α : Type u} [inst : LE α] [Std.IsPreorder α] {xs : Array α}, (∀ (i : Nat) (hi : i + 1 < xs.size), xs[i] ≤ xs[i + 1]) → Inkproof.Core.Sorted xs
 theorem Inkproof.Core.sorted_of_pairwise : ∀ {α : Type u} [inst : LE α] {xs : Array α}, List.Pairwise (fun x1 x2 => x1 ≤ x2) xs.toList → Inkproof.Core.Sorted xs

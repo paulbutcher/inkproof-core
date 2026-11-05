@@ -42,8 +42,9 @@ Inkproof.Core holds sorted series with explicit missing data and gaps, mergeable
 
 ## Floats
 
-- `OrdFloat` wraps a `Float` with a proof that it is not NaN, and its constructor turns `-0.0` into `0.0`, so equal values have one representation (FP-2).
-- The FP-2 axiom states that `Float`'s `≤` is a linear order on non-NaN floats other than `-0.0`. It is the only axiom the library adds, and `OrdFloat`'s order instance rests on it.
+- `OrdFloat` wraps a `Float` with a proof that it is neither NaN nor `-0.0` (FP-2). `OrdFloat.ofFloat?` rejects NaN and turns `-0.0` into `0.0`, so equal values have one representation.
+- `Inkproof.Core.Axioms` holds the only axiom the library adds, `float_le_linear`: `Float`'s `≤` is a linear order on such floats. `OrdFloat`'s order instance rests on it alone.
+- Floats are opaque to proofs, so two things are checked by tests instead, natively and under Lasm: that `ofFloat?` rejects exactly NaN, and that the axiom holds on the platform's floats.
 
 ## Testing
 
