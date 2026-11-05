@@ -21,7 +21,7 @@ Inkproof.Core holds sorted series with explicit missing data and gaps, mergeable
 - A series stores x-values and values as two parallel arrays, with a proof that the x-values are non-decreasing (CORE-1). Repeated x-values are allowed, since data often has them.
 - Values have type `Option β`: a missing value is `none`, never NaN or a sentinel (CORE-2). Aggregation sees the `none` and decides what it contributes.
 - A validated constructor checks sortedness and reports the first offending index. A second constructor establishes it with a stable sort, so equal x-values keep their input order (CORE-1).
-- A segmented series is an ordered array of series, each a contiguous run with no gap inside it (CORE-3). It is built from explicit boundaries, or by splitting at every adjacent pair a caller-supplied predicate marks as a gap. The library never infers a gap.
+- A segmented series is one series plus strictly increasing break indices, each the first point of a new segment, so no segment is empty (CORE-3). It is built from explicit breaks, or by splitting at every adjacent pair a caller-supplied predicate marks as a gap. The library never infers a gap.
 - Algorithms read points through index access, never a particular container, so the indexable-series interface (CORE-8) can supply float arrays or byte buffers without copying.
 
 ## Aggregates
@@ -53,5 +53,5 @@ Inkproof.Core holds sorted series with explicit missing data and gaps, mergeable
 ## API lock
 
 - `scripts/api-lock.sh` prints one line per public declaration of `Inkproof.Core`: kind, full name and type, sorted. Theorem statements are the theorem's type. CI compares the output with `API.lock`, and CODEOWNERS sends changes to the human.
-- Private names, compiler auxiliaries (matchers, recursors, `noConfusion`, equation lemmas) and other declarations derived from a listed one are left out.
+- Private names, modules with an `Internal` component (which no consumer may import), compiler auxiliaries (matchers, recursors, `noConfusion`, equation lemmas) and other declarations derived from a listed one are left out.
 - Every Inkproof library uses this generator through its dependency on Core, `lake exe api-lock <its root module>` after `lake build`, so its command line and line format are a contract with all of them: changing either changes every library's `API.lock`.

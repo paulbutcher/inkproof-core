@@ -12,6 +12,41 @@ structure TestCase where
 def check (cond : Bool) (msg : String) : Except String Unit :=
   if cond then .ok () else .error msg
 
+/-- A deterministic pseudo-random source (64-bit LCG), so failures reproduce on every platform. -/
+structure Rng where
+  state : UInt64
+
+namespace Rng
+
+def next (g : Rng) : Rng := ⟨g.state * 6364136223846793005 + 1442695040888963407⟩
+
+/-- A number below `bound`, or `0` when `bound` is `0`. -/
+def below (g : Rng) (bound : Nat) : Nat × Rng :=
+  let g' := g.next
+  ((g'.state >>> 33).toNat % max bound 1, g')
+
+def array {γ : Type} (g : Rng) (size : Nat) (elem : Rng → γ × Rng) : Array γ × Rng := Id.run do
+  let mut g := g
+  let mut out := Array.emptyWithCapacity size
+  for _ in [0:size] do
+    let (v, g') := elem g
+    out := out.push v
+    g := g'
+  return (out, g)
+
+end Rng
+
+/-- Checks `prop` on `count` generated cases, reporting the first failure with its input. -/
+def forAll {γ : Type} [Repr γ] (count : Nat) (gen : Rng → γ × Rng)
+    (prop : γ → Except String Unit) (seed : UInt64 := 1) : Except String Unit := do
+  let mut g : Rng := ⟨seed⟩
+  for _ in [0:count] do
+    let (c, g') := gen g
+    g := g'
+    match prop c with
+    | .ok () => pure ()
+    | .error msg => throw s!"{msg}\n  input: {reprStr c}"
+
 /-- Runs every case, reports each failure, and returns the process exit code. -/
 def runTests (cases : List TestCase) : IO UInt32 := do
   let mut failed := 0

@@ -1,0 +1,48 @@
+inductive Inkproof.Core.SegmentError : Type
+constructor Inkproof.Core.SegmentError.breakOutOfRange : Nat → Nat → Inkproof.Core.SegmentError
+constructor Inkproof.Core.SegmentError.unsortedBreaks : Nat → Inkproof.Core.SegmentError
+structure Inkproof.Core.Segmented : (α : Type u) → Type v → [LE α] → Type (max u v)
+field Inkproof.Core.Segmented.breaks : {α : Type u} → {β : Type v} → [inst : LE α] → Inkproof.Core.Segmented α β → Array Nat
+theorem Inkproof.Core.Segmented.breaks_bounded : ∀ {α : Type u} {β : Type v} [inst : LE α] (self : Inkproof.Core.Segmented α β) (i : Nat) (h : i < self.breaks.size), 0 < self.breaks[i] ∧ self.breaks[i] < self.series.size
+theorem Inkproof.Core.Segmented.breaks_increasing : ∀ {α : Type u} {β : Type v} [inst : LE α] (self : Inkproof.Core.Segmented α β) (i : Nat) (h : i + 1 < self.breaks.size), self.breaks[i] < self.breaks[i + 1]
+constructor Inkproof.Core.Segmented.mk : {α : Type u} → {β : Type v} → [inst : LE α] → (series : Inkproof.Core.Series α β) → (breaks : Array Nat) → (∀ (i : Nat) (h : i + 1 < breaks.size), breaks[i] < breaks[i + 1]) → (∀ (i : Nat) (h : i < breaks.size), 0 < breaks[i] ∧ breaks[i] < series.size) → Inkproof.Core.Segmented α β
+def Inkproof.Core.Segmented.numSegments : {α : Type u} → {β : Type v} → [inst : LE α] → Inkproof.Core.Segmented α β → Nat
+def Inkproof.Core.Segmented.ofBreaks? : {α : Type u} → {β : Type v} → [inst : LE α] → Inkproof.Core.Series α β → Array Nat → Except Inkproof.Core.SegmentError (Inkproof.Core.Segmented α β)
+def Inkproof.Core.Segmented.segment : {α : Type u} → {β : Type v} → [inst : LE α] → Inkproof.Core.Segmented α β → Nat → Inkproof.Core.Series α β
+def Inkproof.Core.Segmented.segmentStart : {α : Type u} → {β : Type v} → [inst : LE α] → Inkproof.Core.Segmented α β → Nat → Nat
+def Inkproof.Core.Segmented.segmentStop : {α : Type u} → {β : Type v} → [inst : LE α] → Inkproof.Core.Segmented α β → Nat → Nat
+def Inkproof.Core.Segmented.segments : {α : Type u} → {β : Type v} → [inst : LE α] → Inkproof.Core.Segmented α β → Array (Inkproof.Core.Series α β)
+field Inkproof.Core.Segmented.series : {α : Type u} → {β : Type v} → [inst : LE α] → Inkproof.Core.Segmented α β → Inkproof.Core.Series α β
+def Inkproof.Core.Segmented.single : {α : Type u} → {β : Type v} → [inst : LE α] → Inkproof.Core.Series α β → Inkproof.Core.Segmented α β
+def Inkproof.Core.Segmented.splitWhere : {α : Type u} → {β : Type v} → [inst : LE α] → Inkproof.Core.Series α β → (α → α → Bool) → Inkproof.Core.Segmented α β
+structure Inkproof.Core.Series : (α : Type u) → Type v → [LE α] → Type (max u v)
+instance Inkproof.Core.Series.instEmptyCollection : {α : Type u} → {β : Type v} → [inst : LE α] → EmptyCollection (Inkproof.Core.Series α β)
+instance Inkproof.Core.Series.instInhabited : {α : Type u} → {β : Type v} → [inst : LE α] → Inhabited (Inkproof.Core.Series α β)
+constructor Inkproof.Core.Series.mk : {α : Type u} → {β : Type v} → [inst : LE α] → (xs : Array α) → (values : Array (Option β)) → values.size = xs.size → Inkproof.Core.Sorted xs → Inkproof.Core.Series α β
+def Inkproof.Core.Series.ofArrays? : {α : Type u} → {β : Type v} → [inst : LE α] → [DecidableLE α] → [Std.IsPreorder α] → Array α → Array (Option β) → Except Inkproof.Core.SeriesError (Inkproof.Core.Series α β)
+def Inkproof.Core.Series.ofPoints? : {α : Type u} → {β : Type v} → [inst : LE α] → [DecidableLE α] → [Std.IsPreorder α] → Array (α × Option β) → Except Inkproof.Core.SeriesError (Inkproof.Core.Series α β)
+def Inkproof.Core.Series.ofUnsorted : {α : Type u} → {β : Type v} → [inst : LE α] → [DecidableLE α] → [Std.IsLinearOrder α] → Array (α × Option β) → Inkproof.Core.Series α β
+def Inkproof.Core.Series.points : {α : Type u} → {β : Type v} → [inst : LE α] → Inkproof.Core.Series α β → Array (α × Option β)
+def Inkproof.Core.Series.size : {α : Type u} → {β : Type v} → [inst : LE α] → Inkproof.Core.Series α β → Nat
+theorem Inkproof.Core.Series.size_eq : ∀ {α : Type u} {β : Type v} [inst : LE α] (self : Inkproof.Core.Series α β), self.values.size = self.xs.size
+def Inkproof.Core.Series.slice : {α : Type u} → {β : Type v} → [inst : LE α] → Inkproof.Core.Series α β → Nat → Nat → Inkproof.Core.Series α β
+theorem Inkproof.Core.Series.sorted : ∀ {α : Type u} {β : Type v} [inst : LE α] (self : Inkproof.Core.Series α β), Inkproof.Core.Sorted self.xs
+def Inkproof.Core.Series.value : {α : Type u} → {β : Type v} → [inst : LE α] → (s : Inkproof.Core.Series α β) → Fin s.size → Option β
+field Inkproof.Core.Series.values : {α : Type u} → {β : Type v} → [inst : LE α] → Inkproof.Core.Series α β → Array (Option β)
+def Inkproof.Core.Series.x : {α : Type u} → {β : Type v} → [inst : LE α] → (s : Inkproof.Core.Series α β) → Fin s.size → α
+field Inkproof.Core.Series.xs : {α : Type u} → {β : Type v} → [inst : LE α] → Inkproof.Core.Series α β → Array α
+inductive Inkproof.Core.SeriesError : Type
+constructor Inkproof.Core.SeriesError.sizeMismatch : Nat → Nat → Inkproof.Core.SeriesError
+constructor Inkproof.Core.SeriesError.unsorted : Nat → Inkproof.Core.SeriesError
+def Inkproof.Core.Sorted : {α : Type u} → [LE α] → Array α → Prop
+instance Inkproof.Core.instDecidableEqSegmentError : DecidableEq Inkproof.Core.SegmentError
+def Inkproof.Core.instDecidableEqSegmentError.decEq : (x x_1 : Inkproof.Core.SegmentError) → Decidable (x = x_1)
+instance Inkproof.Core.instDecidableEqSeriesError : DecidableEq Inkproof.Core.SeriesError
+def Inkproof.Core.instDecidableEqSeriesError.decEq : (x x_1 : Inkproof.Core.SeriesError) → Decidable (x = x_1)
+instance Inkproof.Core.instReprSegmentError : Repr Inkproof.Core.SegmentError
+def Inkproof.Core.instReprSegmentError.repr : Inkproof.Core.SegmentError → Nat → Std.Format
+instance Inkproof.Core.instReprSeriesError : Repr Inkproof.Core.SeriesError
+def Inkproof.Core.instReprSeriesError.repr : Inkproof.Core.SeriesError → Nat → Std.Format
+theorem Inkproof.Core.sorted_empty : ∀ {α : Type u} [inst : LE α], Inkproof.Core.Sorted #[]
+theorem Inkproof.Core.sorted_of_le_succ : ∀ {α : Type u} [inst : LE α] [Std.IsPreorder α] {xs : Array α}, (∀ (i : Nat) (hi : i + 1 < xs.size), xs[i] ≤ xs[i + 1]) → Inkproof.Core.Sorted xs
+theorem Inkproof.Core.sorted_of_pairwise : ∀ {α : Type u} [inst : LE α] {xs : Array α}, List.Pairwise (fun x1 x2 => x1 ≤ x2) xs.toList → Inkproof.Core.Sorted xs

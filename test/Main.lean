@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 -/
 import Inkproof.Core
 import InkproofCoreTest.Harness
+import InkproofCoreTest.SeriesTests
 
 open InkproofCoreTest
 
@@ -14,4 +15,4 @@ def platformTest (expectWasm : Bool) : TestCase :=
       s!"isEmscripten = {System.Platform.isEmscripten}, target {System.Platform.target}"
 
 def main (args : List String) : IO UInt32 :=
-  runTests [platformTest (args.contains "--expect-wasm")]
+  runTests (platformTest (args.contains "--expect-wasm") :: SeriesTests.tests)
