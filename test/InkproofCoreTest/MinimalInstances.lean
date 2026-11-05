@@ -45,4 +45,13 @@ example (s : Series OrderOnly Opaque) (bs : Array Nat) :
     Except SegmentError (Segmented OrderOnly Opaque) :=
   Segmented.ofBreaks? s bs
 
+/-- Order-based aggregates need only the order. -/
+example : LawfulAggregate (Minimum OrderOnly) := inferInstance
+example : LawfulAggregate (Maximum OrderOnly) := inferInstance
+
+/-- Non-commutative aggregates need nothing of the value type, alone or in products. -/
+example : LawfulAggregate (First Opaque × Last Opaque) := inferInstance
+
+example : LawfulAggregate (Total Nat × Total Int × Count × Occupancy) := inferInstance
+
 end InkproofCoreTest.Minimal
