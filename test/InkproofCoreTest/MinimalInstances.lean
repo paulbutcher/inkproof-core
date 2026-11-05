@@ -3,6 +3,7 @@ Copyright (c) 2026 Paul Butcher. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 -/
 import Inkproof.Core
+import Inkproof.Core.Proofs
 
 /-! Deliberately impoverished types (VAL-1). If the library came to need more than these offer, this
 module would stop compiling. -/
@@ -44,5 +45,30 @@ example (s : Series OrderOnly Opaque) : Segmented OrderOnly Opaque :=
 example (s : Series OrderOnly Opaque) (bs : Array Nat) :
     Except SegmentError (Segmented OrderOnly Opaque) :=
   Segmented.ofBreaks? s bs
+
+/-! The published theorems apply to these types, with every hypothesis discharged (VAL-2). -/
+
+example (ps : Array (OrderOnly × Option Opaque)) :
+    (Series.ofUnsorted ps).points.toList.Perm ps.toList :=
+  Series.ofUnsorted_perm
+
+example (p q : OrderOnly × Option Opaque) (ps : Array (OrderOnly × Option Opaque))
+    (hpq : p.1 ≤ q.1) (h : [p, q].Sublist ps.toList) :
+    [p, q].Sublist (Series.ofUnsorted ps).points.toList :=
+  Series.ofUnsorted_stable hpq h
+
+example (ps : Array (OrderOnly × Option Opaque)) :
+    (∃ s : Series OrderOnly Opaque, Series.ofPoints? ps = .ok s) ↔ Sorted (ps.map (·.1)) :=
+  Series.ofPoints?_ok_iff
+
+example (s : Series OrderOnly Opaque) (b : Nat) :
+    b ∈ (Segmented.splitWhere s fun x y => decide (y ≤ x)).breaks ↔
+      ∃ h : 0 < b ∧ b < s.size, decide (s.xs[b]'h.2 ≤ s.xs[b - 1]'(by
+        unfold Series.size at h; omega)) = true :=
+  Segmented.mem_breaks_splitWhere s _ b
+
+example (g : Segmented OrderOnly Opaque) :
+    (g.segments.toList.map (·.points.toList)).flatten = g.series.points.toList :=
+  Segmented.flatten_segments g
 
 end InkproofCoreTest.Minimal
