@@ -7,6 +7,7 @@ Sorted series with explicit missing data and gaps, mergeable aggregates, and agg
 | Inkproof.Core | Lean | Lasm (`@lasm/cli`) |
 | --- | --- | --- |
 | `main` | `leanprover/lean4:v4.35.0` | 0.3.5 |
+| `v0.1.0` | `leanprover/lean4:v4.35.0` | 0.3.5 |
 
 The library has no dependencies and builds natively and under Lasm from the same source.
 
