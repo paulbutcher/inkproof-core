@@ -8,3 +8,4 @@ import Inkproof.Core.Aggregate
 import Inkproof.Core.Pyramid
 import Inkproof.Core.Axioms
 import Inkproof.Core.OrdFloat
+import Inkproof.Core.Query
