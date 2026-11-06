@@ -6,3 +6,4 @@ import Inkproof.Core.Proofs.Series
 import Inkproof.Core.Proofs.Segmented
 import Inkproof.Core.Proofs.Aggregate
 import Inkproof.Core.Proofs.Pyramid
+import Inkproof.Core.Proofs.Query

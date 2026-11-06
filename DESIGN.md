@@ -35,10 +35,10 @@ Inkproof.Core holds sorted series with explicit missing data and gaps, mergeable
 ## Pyramids
 
 - A pyramid over one segment stores level 0 as the measure of each point, and each level above as the product of consecutive groups of `b ≥ 2` nodes from the level below, in order. Point `i` belongs to node `i / b^k` at level `k`.
-- A range query combines `O(b log n)` nodes. Index ranges are primary; an x-range is turned into an index range by binary search, which is correct because the series is sorted.
+- A query takes whole groups from the level above wherever it can; a built pyramid's levels shrink to one node. Index ranges are primary; `Series.lowerBound` turns an x-range into an index range by binary search, which is correct because the series is sorted.
 - PROOF-1: for every monoid and every index or x-range, the query equals the monoid fold over the raw points in that range, in order. Order matters because the monoid need not be commutative.
 - PROOF-2: each point lies in exactly one node per level, and each node equals the product of its children.
-- PROOF-3: a segmented series has one pyramid per segment. A segmented query returns one result per segment overlapping the range, each equal to the fold over that segment's points alone, so no value combines points from two segments. Levels are flat arrays so CORE-7 tiles can be fixed ranges of nodes per level.
+- PROOF-3: `SegmentedPyramid` holds one pyramid per segment. Its query returns one result per segment, `empty` where no point is in range, each equal to the fold over that segment's in-range points alone, so no value combines points from two segments. Levels are flat arrays so CORE-7 tiles can be fixed ranges of nodes per level.
 
 ## Floats
 

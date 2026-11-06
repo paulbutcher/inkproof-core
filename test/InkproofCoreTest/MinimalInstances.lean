@@ -112,4 +112,20 @@ example (p : Pyramid (Minimum OrderOnly)) (k j : Nat) (hk : k < p.levels.size)
     p.levels[k][j] = Aggregate.foldRange p.leaves (j * p.branching ^ k) ((j + 1) * p.branching ^ k) :=
   Pyramid.getElem_levels p hk hj
 
+/-- PROOF-1 over x-ranges, with only an order on the x-type. -/
+example (s : Series OrderOnly Opaque) (m : OrderOnly × Option Opaque → First Opaque × Last Opaque)
+    (x₀ x₁ : OrderOnly) :
+    (Pyramid.ofMeasure 2 (by decide) m s.points).query (s.lowerBound x₀) (s.lowerBound x₁) =
+      Aggregate.fold m (s.points.filter (Series.inRange x₀ x₁)) :=
+  Pyramid.query_lowerBound s 2 (by decide) m x₀ x₁
+
+/-- PROOF-3 for a non-commutative aggregate over the order-only x-type: each result folds only its
+own segment's points. -/
+example (g : Segmented OrderOnly Opaque) (x₀ x₁ : OrderOnly) (k : Nat)
+    (sp := SegmentedPyramid.build g (fun p => (First.mk p.2, Last.mk p.2)) 4 (by decide))
+    (hk : k < (sp.query x₀ x₁).size) :
+    (sp.query x₀ x₁)[k] =
+      Aggregate.fold sp.measure ((sp.segmented.segment k).points.filter (Series.inRange x₀ x₁)) :=
+  SegmentedPyramid.getElem_query sp x₀ x₁ hk
+
 end InkproofCoreTest.Minimal
