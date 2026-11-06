@@ -21,3 +21,15 @@ require «inkproof-core» from git "https://github.com/tentenths/inkproof-core" 
 ## Guarantees
 
 The theorems hold for any linearly ordered x-type and any lawful aggregate, commutative or not. The only axiom beyond Lean's own is the float-order axiom in `Inkproof.Core.Axioms`, and a check in the tests fails if any other creeps in. [DESIGN.md](DESIGN.md) describes the design, and `API.lock` lists every public declaration and theorem statement.
+
+## Trusted computing base
+
+The proofs cover the Lean source. These are trusted beneath them:
+
+| Component | Why trusted | Mitigation |
+| --- | --- | --- |
+| Float-order axiom (FP-2) | Lean floats are opaque to proofs | One axiom, `float_le_linear`; `OrdFloat` excludes NaN and `-0.0`; the tests check the axiom on the platform's floats, natively and under Lasm |
+| Lean compiler and runtime | Compiles the proved source | Pinned in `lean-toolchain`; the same test program runs natively and under Lasm |
+| Lasm compiler, runtime and Emscripten | Compiles Lean to Wasm | Pinned exactly in the test subproject; the same test program runs natively and under Lasm |
+
+The library has no generated code and no hand-written JavaScript.
