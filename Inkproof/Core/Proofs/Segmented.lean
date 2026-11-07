@@ -113,13 +113,16 @@ theorem flatten_segments (g : Segmented α β) :
     simp only [Array.getElem?_eq_none (Nat.le_refl _), Option.getD_none]
     rw [Array.extract_eq_self_of_le (by simp [Series.size_points])]
 
-/-- `splitWhere` breaks exactly before each point whose x-value `gap` separates from its
-predecessor's. -/
-theorem mem_breaks_splitWhere (s : Series α β) (gap : α → α → Bool) (b : Nat) :
-    b ∈ (splitWhere s gap).breaks ↔
+/-- `splitWherePoints` breaks exactly before each point that `gap` separates from its
+predecessor. -/
+theorem mem_breaks_splitWherePoints (s : Series α β)
+    (gap : (α × Option β) → (α × Option β) → Bool) (b : Nat) :
+    b ∈ (splitWherePoints s gap).breaks ↔
       ∃ h : 0 < b ∧ b < s.size,
-        gap (s.xs[b - 1]'(by unfold Series.size at h; omega)) (s.xs[b]'h.2) = true := by
-  simp only [splitWhere, List.mem_toArray, List.mem_filter, List.mem_range']
+        gap (s.xs[b - 1]'(by unfold Series.size at h; omega),
+            s.values[b - 1]'(by rw [s.size_eq]; unfold Series.size at h; omega))
+          (s.xs[b]'h.2, s.values[b]'(by rw [s.size_eq]; exact h.2)) = true := by
+  simp only [splitWherePoints, List.mem_toArray, List.mem_filter, List.mem_range']
   constructor
   · rintro ⟨⟨i, hi, hb⟩, hgap⟩
     have h : 0 < b ∧ b < s.size := by omega
@@ -127,6 +130,14 @@ theorem mem_breaks_splitWhere (s : Series α β) (gap : α → α → Bool) (b :
     exact ⟨h, hgap⟩
   · rintro ⟨h, hgap⟩
     exact ⟨⟨b - 1, by omega, by omega⟩, by rw [dite_eq_left_of_eq_true (eq_true ⟨h.2, h.1⟩)]; exact hgap⟩
+
+/-- `splitWhere` breaks exactly before each point whose x-value `gap` separates from its
+predecessor's. -/
+theorem mem_breaks_splitWhere (s : Series α β) (gap : α → α → Bool) (b : Nat) :
+    b ∈ (splitWhere s gap).breaks ↔
+      ∃ h : 0 < b ∧ b < s.size,
+        gap (s.xs[b - 1]'(by unfold Series.size at h; omega)) (s.xs[b]'h.2) = true :=
+  mem_breaks_splitWherePoints s _ b
 
 /-- An accepted segmentation holds exactly the series and breaks it was given. -/
 theorem ofBreaks?_eq_ok {s : Series α β} {bs : Array Nat} {g : Segmented α β}
