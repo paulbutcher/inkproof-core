@@ -48,11 +48,15 @@ def ofBreaks? (s : Series α β) (breaks : Array Nat) : Except SegmentError (Seg
           simp at this
           omega⟩
 
-/-- Splits the series wherever `gap` holds between the x-values of adjacent points, and nowhere else
-(`mem_breaks_splitWhere`). The library never decides on its own where a gap is. -/
-def splitWhere (s : Series α β) (gap : α → α → Bool) : Segmented α β :=
+/-- Splits the series wherever `gap` holds between adjacent points, and nowhere else
+(`mem_breaks_splitWherePoints`). The library never decides on its own where a gap is. -/
+def splitWherePoints (s : Series α β) (gap : (α × Option β) → (α × Option β) → Bool) :
+    Segmented α β :=
   let isBreak (i : Nat) : Bool :=
-    if h : i < s.size ∧ 0 < i then gap (s.xs[i - 1]'(by unfold Series.size at h; omega)) (s.xs[i]'h.1)
+    if h : i < s.size ∧ 0 < i then
+      have : i - 1 < s.size := by omega
+      gap (s.xs[i - 1], s.values[i - 1]'(s.size_eq ▸ this))
+        (s.xs[i]'h.1, s.values[i]'(s.size_eq ▸ h.1))
     else false
   let candidates := List.range' 1 (s.size - 1)
   have hsorted : (candidates.filter isBreak).Pairwise (· < ·) :=
@@ -68,6 +72,10 @@ def splitWhere (s : Series α β) (gap : α → α → Bool) : Segmented α β :
         (by omega)
     breaks_bounded := fun i h => by
       exact hmem _ (List.getElem_mem (by simpa using h)) }
+
+/-- `splitWherePoints` with a gap decided by x-values alone (`mem_breaks_splitWhere`). -/
+def splitWhere (s : Series α β) (gap : α → α → Bool) : Segmented α β :=
+  splitWherePoints s fun p q => gap p.1 q.1
 
 /-- The number of segments: none for an empty series, otherwise one more than the breaks. -/
 def numSegments (g : Segmented α β) : Nat :=

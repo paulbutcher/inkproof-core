@@ -42,6 +42,10 @@ example (ps : Array (OrderOnly × Option Opaque)) : Except SeriesError (Series O
 example (s : Series OrderOnly Opaque) : Segmented OrderOnly Opaque :=
   Segmented.splitWhere s fun a b => decide (b ≤ a)
 
+/-- A gap may depend on the readings, even of a type with no instances: here, a missing one. -/
+example (s : Series OrderOnly Opaque) : Segmented OrderOnly Opaque :=
+  Segmented.splitWherePoints s fun _ q => q.2.isNone
+
 example (s : Series OrderOnly Opaque) (bs : Array Nat) :
     Except SegmentError (Segmented OrderOnly Opaque) :=
   Segmented.ofBreaks? s bs
@@ -75,6 +79,11 @@ example (s : Series OrderOnly Opaque) (b : Nat) :
       ∃ h : 0 < b ∧ b < s.size, decide (s.xs[b]'h.2 ≤ s.xs[b - 1]'(by
         unfold Series.size at h; omega)) = true :=
   Segmented.mem_breaks_splitWhere s _ b
+
+example (s : Series OrderOnly Opaque) (b : Nat) :
+    b ∈ (Segmented.splitWherePoints s fun _ q => q.2.isNone).breaks ↔
+      ∃ h : 0 < b ∧ b < s.size, (s.values[b]'(by rw [s.size_eq]; exact h.2)).isNone = true :=
+  Segmented.mem_breaks_splitWherePoints s _ b
 
 example (g : Segmented OrderOnly Opaque) :
     (g.segments.toList.map (·.points.toList)).flatten = g.series.points.toList :=
