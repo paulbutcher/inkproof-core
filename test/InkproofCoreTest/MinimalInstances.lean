@@ -128,4 +128,13 @@ example (g : Segmented OrderOnly Opaque) (x₀ x₁ : OrderOnly) (k : Nat)
       Aggregate.fold sp.measure ((sp.segmented.segment k).points.filter (Series.inRange x₀ x₁)) :=
   SegmentedPyramid.getElem_query sp x₀ x₁ hk
 
+example (sp : SegmentedPyramid OrderOnly Opaque (First (Option Opaque) × Last (Option Opaque)))
+    (x₀ x₁ : OrderOnly) :
+    sp.queryOverlapping x₀ x₁ =
+      ((List.range sp.segmented.numSegments).filter fun k =>
+          (sp.segmented.segment k).points.any (Series.inRange x₀ x₁)).toArray.map fun k =>
+        (k, Aggregate.fold sp.measure
+          ((sp.segmented.segment k).points.filter (Series.inRange x₀ x₁))) :=
+  SegmentedPyramid.queryOverlapping_eq sp x₀ x₁
+
 end InkproofCoreTest.Minimal
