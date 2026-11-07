@@ -64,6 +64,25 @@ def query [DecidableLE α] (sp : SegmentedPyramid α β M) (x₀ x₁ : α) : Ar
     let s := sp.segmented.segment k
     p.query (s.lowerBound x₀) (s.lowerBound x₁)
 
+/-- The results of `query` for just the segments with points in `[x₀, x₁)`, each paired with its
+segment index, in segment order (`SegmentedPyramid.queryOverlapping_eq`). Its cost grows with the
+number of those segments, not with `numSegments`. -/
+def queryOverlapping [DecidableLE α] (sp : SegmentedPyramid α β M) (x₀ x₁ : α) :
+    Array (Nat × M) :=
+  let g := sp.segmented
+  let lo := g.series.lowerBound x₀
+  let hi := g.series.lowerBound x₁
+  -- Segments before `first` end at or before `lo`, and those from `last` on start at or after `hi`.
+  let first := Series.lowerBoundFrom g.breaks (lo + 1) 0 g.breaks.size
+  let last := Series.lowerBoundFrom g.breaks hi 0 g.breaks.size + 1
+  (Array.range' first (last - first)).filterMap fun k =>
+    if h : k < sp.pyramids.size then
+      let start := g.segmentStart k
+      let a := max lo start - start
+      let b := min hi (g.segmentStop k) - start
+      if a < b then some (k, sp.pyramids[k].query a b) else none
+    else none
+
 end SegmentedPyramid
 
 end Inkproof.Core
