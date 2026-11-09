@@ -14,7 +14,7 @@ The library has no dependencies and builds natively and under Lasm from the same
 ## Using it
 
 ```lean
-require «inkproof-core» from git "https://github.com/tentenths/inkproof-core" @ "v0.1.0"
+require «inkproof-core» from git "https://github.com/paulbutcher/inkproof-core" @ "v0.1.0"
 ```
 
 `import Inkproof.Core` brings in everything a program runs. `import Inkproof.Core.Proofs` adds the published theorems, which a browser build need not link. Each definition's docstring names the theorems about it.
