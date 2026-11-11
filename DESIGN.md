@@ -40,6 +40,12 @@ Inkproof.Core holds sorted series with explicit missing data and gaps, mergeable
 - PROOF-2: each point lies in exactly one node per level, and each node equals the product of its children.
 - PROOF-3: `SegmentedPyramid` holds one pyramid per segment. Its query returns one result per segment, `empty` where no point is in range, each equal to the fold over that segment's in-range points alone, so no value combines points from two segments. `queryOverlapping` returns the same results for just the segments with points in range, tagged with their indices; it finds the first and last by binary search over the breaks, so its cost follows the segments in range rather than all of them. Levels are flat arrays so CORE-7 tiles can be fixed ranges of nodes per level.
 
+## Binning, indexed data and tiles
+
+- `Binning` holds a column count and a monotone map from the x-domain to columns below it (CORE-4). `ofInt`, `ofNat` and `ofFixed` split a range into equal columns in exact integer arithmetic (FP-4), `Fixed` being an integer with a decimal scale. `ofBreaks` counts the breaks at or below a point, so it needs only an order and bins `OrdFloat` x-values with breaks the caller computed; float arithmetic is opaque to proofs, so monotonicity could not be proved for a float formula.
+- `IndexedSeries` is size plus index access, with instances for `Array`, `ByteArray` and `FloatArray` (CORE-8). `Pyramid.ofIndexed` and `Series.lowerBoundIndexed` read through it and are proved equal to the array versions on `IndexedSeries.toArray`, so PROOF-1 and the lower-bound specification carry over unchanged.
+- A tile is a fixed run of `n` nodes of one level (CORE-7). `Pyramid.queryTiled` takes the branching, the number of levels and a tile fetcher, and is proved equal to `Pyramid.query` for any tile size; it touches only the tiles holding the partial groups at each level. Wire encoding is out of scope.
+
 ## Floats
 
 - `OrdFloat` wraps a `Float` with a proof that it is neither NaN nor `-0.0` (FP-2). `OrdFloat.ofFloat?` rejects NaN and turns `-0.0` into `0.0`, so equal values have one representation.

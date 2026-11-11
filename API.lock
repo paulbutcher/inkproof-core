@@ -3,15 +3,44 @@ field Inkproof.Core.Aggregate.empty : {M : Type u} → [self : Inkproof.Core.Agg
 def Inkproof.Core.Aggregate.fold : {M : Type u} → [Inkproof.Core.Aggregate M] → {γ : Type v} → (γ → M) → Array γ → M
 def Inkproof.Core.Aggregate.foldRange : {M : Type u} → [Inkproof.Core.Aggregate M] → Array M → Nat → Nat → M
 theorem Inkproof.Core.Aggregate.foldRange_eq_extract : ∀ {M : Type u} [inst : Inkproof.Core.Aggregate M] (a : Array M) (lo hi : Nat), Inkproof.Core.Aggregate.foldRange a lo hi = Array.foldl Inkproof.Core.Aggregate.merge Inkproof.Core.Aggregate.empty (a.extract lo hi)
+theorem Inkproof.Core.Aggregate.foldRange_extract : ∀ {M : Type u} [inst : Inkproof.Core.Aggregate M] {a : Array M} {s e lo hi : Nat}, s ≤ lo → hi ≤ e → lo ≤ hi → Inkproof.Core.Aggregate.foldRange (a.extract s e) (lo - s) (hi - s) = Inkproof.Core.Aggregate.foldRange a lo hi
 theorem Inkproof.Core.Aggregate.foldRange_of_le : ∀ {M : Type u} [inst : Inkproof.Core.Aggregate M] (a : Array M) {lo hi : Nat}, hi ≤ lo → Inkproof.Core.Aggregate.foldRange a lo hi = Inkproof.Core.Aggregate.empty
 theorem Inkproof.Core.Aggregate.foldRange_of_size_le : ∀ {M : Type u} [inst : Inkproof.Core.Aggregate M] (a : Array M) {lo hi : Nat}, a.size ≤ lo → Inkproof.Core.Aggregate.foldRange a lo hi = Inkproof.Core.Aggregate.empty
 theorem Inkproof.Core.Aggregate.foldRange_single : ∀ {M : Type u} [inst : Inkproof.Core.Aggregate M] [Inkproof.Core.LawfulAggregate M] (a : Array M) {j : Nat} (h : j < a.size), Inkproof.Core.Aggregate.foldRange a j (j + 1) = a[j]
 theorem Inkproof.Core.Aggregate.foldRange_split : ∀ {M : Type u} [inst : Inkproof.Core.Aggregate M] [Inkproof.Core.LawfulAggregate M] (a : Array M) {lo mid hi : Nat}, lo ≤ mid → mid ≤ hi → Inkproof.Core.Aggregate.foldRange a lo hi = Inkproof.Core.Aggregate.merge (Inkproof.Core.Aggregate.foldRange a lo mid) (Inkproof.Core.Aggregate.foldRange a mid hi)
+def Inkproof.Core.Aggregate.foldTiles : {M : Type u} → [Inkproof.Core.Aggregate M] → (n : Nat) → 0 < n → (Nat → Array M) → Nat → Nat → M
+theorem Inkproof.Core.Aggregate.foldTiles_eq : ∀ {M : Type u} [inst : Inkproof.Core.Aggregate M] [Inkproof.Core.LawfulAggregate M] (n : Nat) (hn : 0 < n) (a : Array M) (tile : Nat → Array M), (∀ (t : Nat), tile t = a.extract (t * n) ((t + 1) * n)) → ∀ (lo hi : Nat), Inkproof.Core.Aggregate.foldTiles n hn tile lo hi = Inkproof.Core.Aggregate.foldRange a lo hi
 theorem Inkproof.Core.Aggregate.fold_eq_foldr : ∀ {M : Type u} [inst : Inkproof.Core.Aggregate M] {γ : Type v} [Inkproof.Core.LawfulAggregate M] (m : γ → M) (xs : Array γ), Inkproof.Core.Aggregate.fold m xs = List.foldr Inkproof.Core.Aggregate.merge Inkproof.Core.Aggregate.empty (List.map m xs.toList)
 theorem Inkproof.Core.Aggregate.fold_prod : ∀ {γ : Type v} {A : Type u} {B : Type w} [inst : Inkproof.Core.Aggregate A] [inst_1 : Inkproof.Core.Aggregate B] (m₁ : γ → A) (m₂ : γ → B) (xs : Array γ), Inkproof.Core.Aggregate.fold (fun x => (m₁ x, m₂ x)) xs = (Inkproof.Core.Aggregate.fold m₁ xs, Inkproof.Core.Aggregate.fold m₂ xs)
 theorem Inkproof.Core.Aggregate.foldl_merge_append : ∀ {M : Type u} [inst : Inkproof.Core.Aggregate M] [Inkproof.Core.LawfulAggregate M] (xs ys : Array M), Array.foldl Inkproof.Core.Aggregate.merge Inkproof.Core.Aggregate.empty (xs ++ ys) = Inkproof.Core.Aggregate.merge (Array.foldl Inkproof.Core.Aggregate.merge Inkproof.Core.Aggregate.empty xs) (Array.foldl Inkproof.Core.Aggregate.merge Inkproof.Core.Aggregate.empty ys)
 field Inkproof.Core.Aggregate.merge : {M : Type u} → [self : Inkproof.Core.Aggregate M] → M → M → M
 constructor Inkproof.Core.Aggregate.mk : {M : Type u} → M → (M → M → M) → Inkproof.Core.Aggregate M
+structure Inkproof.Core.Binning : (α : Type u) → [LE α] → Type u
+field Inkproof.Core.Binning.col : {α : Type u} → [inst : LE α] → Inkproof.Core.Binning α → α → Nat
+theorem Inkproof.Core.Binning.col_eq_of_le_of_le : ∀ {α : Type u} [inst : LE α] (b : Inkproof.Core.Binning α) {x y : α}, x ≤ y → y ≤ x → b.col x = b.col y
+theorem Inkproof.Core.Binning.col_lt : ∀ {α : Type u} [inst : LE α] (self : Inkproof.Core.Binning α) (x : α), self.col x < self.columns
+field Inkproof.Core.Binning.columns : {α : Type u} → [inst : LE α] → Inkproof.Core.Binning α → Nat
+def Inkproof.Core.Binning.comap : {α : Type u} → {γ : Type v} → [inst : LE α] → [inst_1 : LE γ] → (f : α → γ) → (∀ {x y : α}, x ≤ y → f x ≤ f y) → Inkproof.Core.Binning γ → Inkproof.Core.Binning α
+theorem Inkproof.Core.Binning.comap_col : ∀ {α : Type u} {γ : Type v} [inst : LE α] [inst_1 : LE γ] (f : α → γ) (hf : ∀ {x y : α}, x ≤ y → f x ≤ f y) (b : Inkproof.Core.Binning γ) (x : α), (Inkproof.Core.Binning.comap f ⋯ b).col x = b.col (f x)
+theorem Inkproof.Core.Binning.comap_columns : ∀ {α : Type u} {γ : Type v} [inst : LE α] [inst_1 : LE γ] (f : α → γ) (hf : ∀ {x y : α}, x ≤ y → f x ≤ f y) (b : Inkproof.Core.Binning γ), (Inkproof.Core.Binning.comap f ⋯ b).columns = b.columns
+constructor Inkproof.Core.Binning.mk : {α : Type u} → [inst : LE α] → (columns : Nat) → (col : α → Nat) → (∀ (x : α), col x < columns) → (∀ {x y : α}, x ≤ y → col x ≤ col y) → Inkproof.Core.Binning α
+theorem Inkproof.Core.Binning.monotone : ∀ {α : Type u} [inst : LE α] (self : Inkproof.Core.Binning α) {x y : α}, x ≤ y → self.col x ≤ self.col y
+def Inkproof.Core.Binning.ofBreaks : {α : Type u} → [inst : LE α] → [DecidableLE α] → [Std.IsPreorder α] → Array α → Inkproof.Core.Binning α
+theorem Inkproof.Core.Binning.ofBreaks_col : ∀ {α : Type u} [inst : LE α] [inst_1 : DecidableLE α] [inst_2 : Std.IsPreorder α] (breaks : Array α) (x : α), (Inkproof.Core.Binning.ofBreaks breaks).col x = Array.countP (fun b => Decidable.decide (b ≤ x)) breaks
+theorem Inkproof.Core.Binning.ofBreaks_columns : ∀ {α : Type u} [inst : LE α] [inst_1 : DecidableLE α] [inst_2 : Std.IsPreorder α] (breaks : Array α), (Inkproof.Core.Binning.ofBreaks breaks).columns = breaks.size + 1
+def Inkproof.Core.Binning.ofFixed : {s : Nat} → Int → Int → (width : Nat) → 0 < width → Inkproof.Core.Binning (Inkproof.Core.Fixed s)
+theorem Inkproof.Core.Binning.ofFixed_col : ∀ {s : Nat} (x₀ x₁ : Int) (w : Nat) (hw : 0 < w) (x : Inkproof.Core.Fixed s), (Inkproof.Core.Binning.ofFixed x₀ x₁ w hw).col x = (Inkproof.Core.Binning.ofInt x₀ x₁ w hw).col x.raw
+theorem Inkproof.Core.Binning.ofFixed_columns : ∀ {s : Nat} (x₀ x₁ : Int) (w : Nat) (hw : 0 < w), (Inkproof.Core.Binning.ofFixed x₀ x₁ w hw).columns = w
+def Inkproof.Core.Binning.ofInt : Int → Int → (width : Nat) → 0 < width → Inkproof.Core.Binning Int
+theorem Inkproof.Core.Binning.ofInt_col_of_ge : ∀ (x₀ x₁ : Int) (w : Nat) (hw : 0 < w), x₀ < x₁ → ∀ {x : Int}, x₁ ≤ x → (Inkproof.Core.Binning.ofInt x₀ x₁ w hw).col x = w - 1
+theorem Inkproof.Core.Binning.ofInt_col_of_le : ∀ (x₀ x₁ : Int) (w : Nat) (hw : 0 < w) {x : Int}, x ≤ x₀ → (Inkproof.Core.Binning.ofInt x₀ x₁ w hw).col x = 0
+theorem Inkproof.Core.Binning.ofInt_col_of_lt : ∀ (x₀ x₁ : Int) (w : Nat) (hw : 0 < w) {x : Int}, x₀ ≤ x → x < x₁ → (Inkproof.Core.Binning.ofInt x₀ x₁ w hw).col x = (x - x₀).toNat * w / (x₁ - x₀).toNat
+theorem Inkproof.Core.Binning.ofInt_columns : ∀ (x₀ x₁ : Int) (w : Nat) (hw : 0 < w), (Inkproof.Core.Binning.ofInt x₀ x₁ w hw).columns = w
+def Inkproof.Core.Binning.ofNat : Nat → Nat → (width : Nat) → 0 < width → Inkproof.Core.Binning Nat
+theorem Inkproof.Core.Binning.ofNat_col_of_ge : ∀ (x₀ x₁ w : Nat) (hw : 0 < w), x₀ < x₁ → ∀ {x : Nat}, x₁ ≤ x → (Inkproof.Core.Binning.ofNat x₀ x₁ w hw).col x = w - 1
+theorem Inkproof.Core.Binning.ofNat_col_of_le : ∀ (x₀ x₁ w : Nat) (hw : 0 < w) {x : Nat}, x ≤ x₀ → (Inkproof.Core.Binning.ofNat x₀ x₁ w hw).col x = 0
+theorem Inkproof.Core.Binning.ofNat_col_of_lt : ∀ (x₀ x₁ w : Nat) (hw : 0 < w) {x : Nat}, x₀ ≤ x → x < x₁ → (Inkproof.Core.Binning.ofNat x₀ x₁ w hw).col x = (x - x₀) * w / (x₁ - x₀)
+theorem Inkproof.Core.Binning.ofNat_columns : ∀ (x₀ x₁ w : Nat) (hw : 0 < w), (Inkproof.Core.Binning.ofNat x₀ x₁ w hw).columns = w
 structure Inkproof.Core.Count : Type
 theorem Inkproof.Core.Count.fold_get : ∀ {γ : Type v} (m : γ → Inkproof.Core.Count) (xs : Array γ), (Inkproof.Core.Aggregate.fold m xs).get = (List.map (fun x => (m x).get) xs.toList).sum
 field Inkproof.Core.Count.get : Inkproof.Core.Count → Nat
@@ -20,7 +49,24 @@ structure Inkproof.Core.First : Type u → Type u
 theorem Inkproof.Core.First.fold_get : ∀ {γ : Type v} {α : Type u} (m : γ → Inkproof.Core.First α) (xs : Array γ), (Inkproof.Core.Aggregate.fold m xs).get = List.findSome? (fun x => (m x).get) xs.toList
 field Inkproof.Core.First.get : {α : Type u} → Inkproof.Core.First α → Option α
 constructor Inkproof.Core.First.mk : {α : Type u} → Option α → Inkproof.Core.First α
+structure Inkproof.Core.Fixed : Nat → Type
+instance Inkproof.Core.Fixed.instDecidableLE : {s : Nat} → DecidableLE (Inkproof.Core.Fixed s)
+theorem Inkproof.Core.Fixed.instIsLinearOrder : ∀ {s : Nat}, Std.IsLinearOrder (Inkproof.Core.Fixed s)
+instance Inkproof.Core.Fixed.instLE : {s : Nat} → LE (Inkproof.Core.Fixed s)
+constructor Inkproof.Core.Fixed.mk : {scale : Nat} → Int → Inkproof.Core.Fixed scale
+field Inkproof.Core.Fixed.raw : {scale : Nat} → Inkproof.Core.Fixed scale → Int
 def Inkproof.Core.Float.IsOrdered : Float → Prop
+class Inkproof.Core.IndexedSeries : Type u → outParam (Type v) → Type (max u v)
+field Inkproof.Core.IndexedSeries.get : {σ : Type u} → {α : outParam (Type v)} → [self : Inkproof.Core.IndexedSeries σ α] → (s : σ) → (i : Nat) → i < Inkproof.Core.IndexedSeries.size s → α
+theorem Inkproof.Core.IndexedSeries.getElem_toArray : ∀ {σ : Type u} {α : Type v} [inst : Inkproof.Core.IndexedSeries σ α] (s : σ) {i : Nat} (h : i < (Inkproof.Core.IndexedSeries.toArray s).size), (Inkproof.Core.IndexedSeries.toArray s)[i] = Inkproof.Core.IndexedSeries.get s i ⋯
+instance Inkproof.Core.IndexedSeries.instArray : {α : Type v} → Inkproof.Core.IndexedSeries (Array α) α
+instance Inkproof.Core.IndexedSeries.instByteArrayUInt8 : Inkproof.Core.IndexedSeries ByteArray UInt8
+instance Inkproof.Core.IndexedSeries.instFloatArrayFloat : Inkproof.Core.IndexedSeries FloatArray Float
+constructor Inkproof.Core.IndexedSeries.mk : {σ : Type u} → {α : outParam (Type v)} → (size : σ → Nat) → ((s : σ) → (i : Nat) → i < size s → α) → Inkproof.Core.IndexedSeries σ α
+field Inkproof.Core.IndexedSeries.size : {σ : Type u} → {α : outParam (Type v)} → [self : Inkproof.Core.IndexedSeries σ α] → σ → Nat
+theorem Inkproof.Core.IndexedSeries.size_toArray : ∀ {σ : Type u} {α : Type v} [inst : Inkproof.Core.IndexedSeries σ α] (s : σ), (Inkproof.Core.IndexedSeries.toArray s).size = Inkproof.Core.IndexedSeries.size s
+def Inkproof.Core.IndexedSeries.toArray : {σ : Type u} → {α : Type v} → [Inkproof.Core.IndexedSeries σ α] → σ → Array α
+theorem Inkproof.Core.IndexedSeries.toArray_array : ∀ {α : Type v} (a : Array α), Inkproof.Core.IndexedSeries.toArray a = a
 structure Inkproof.Core.Last : Type u → Type u
 theorem Inkproof.Core.Last.fold_get : ∀ {γ : Type v} {α : Type u} (m : γ → Inkproof.Core.Last α) (xs : Array γ), (Inkproof.Core.Aggregate.fold m xs).get = List.findSome? (fun x => (m x).get) xs.toList.reverse
 field Inkproof.Core.Last.get : {α : Type u} → Inkproof.Core.Last α → Option α
@@ -77,23 +123,37 @@ theorem Inkproof.Core.Pyramid.foldRange_coarsen : ∀ {M : Type u} [inst : Inkpr
 theorem Inkproof.Core.Pyramid.foldRange_levelAt : ∀ {M : Type u} [inst : Inkproof.Core.Aggregate M] [Inkproof.Core.LawfulAggregate M] {b : Nat}, 0 < b → ∀ (a : Array M) (k c d : Nat), Inkproof.Core.Aggregate.foldRange (Inkproof.Core.Pyramid.levelAt b a k) c d = Inkproof.Core.Aggregate.foldRange a (c * b ^ k) (d * b ^ k)
 theorem Inkproof.Core.Pyramid.getElem_levels : ∀ {M : Type u} [inst : Inkproof.Core.Aggregate M] [Inkproof.Core.LawfulAggregate M] (p : Inkproof.Core.Pyramid M) {k j : Nat} (hk : k < p.levels.size) (hj : j < p.levels[k].size), p.levels[k][j] = Inkproof.Core.Aggregate.foldRange p.leaves (j * p.branching ^ k) ((j + 1) * p.branching ^ k)
 theorem Inkproof.Core.Pyramid.getElem_levels_succ : ∀ {M : Type u} [inst : Inkproof.Core.Aggregate M] (p : Inkproof.Core.Pyramid M) {k j : Nat} (hk : k + 1 < p.levels.size) (hj : j < p.levels[k + 1].size), p.levels[k + 1][j] = Inkproof.Core.Aggregate.foldRange p.levels[k] (j * p.branching) (j * p.branching + p.branching)
+theorem Inkproof.Core.Pyramid.getElem_tile : ∀ {M : Type u} [inst : Inkproof.Core.Aggregate M] (p : Inkproof.Core.Pyramid M) (n k t : Nat) {j : Nat} (hj : j < (p.tile n k t).size) (h : t * n + j < (p.levels.getD k #[]).size), (p.tile n k t)[j] = (p.levels.getD k #[])[t * n + j]
 field Inkproof.Core.Pyramid.leaves : {M : Type u} → [inst : Inkproof.Core.Aggregate M] → Inkproof.Core.Pyramid M → Array M
 def Inkproof.Core.Pyramid.levelAt : {M : Type u} → [Inkproof.Core.Aggregate M] → Nat → Array M → Nat → Array M
 theorem Inkproof.Core.Pyramid.levelAt_succ' : ∀ {M : Type u} [inst : Inkproof.Core.Aggregate M] (b : Nat) (a : Array M) (k : Nat), Inkproof.Core.Pyramid.levelAt b a (k + 1) = Inkproof.Core.Pyramid.levelAt b (Inkproof.Core.Pyramid.coarsen b a) k
 field Inkproof.Core.Pyramid.levels : {M : Type u} → [inst : Inkproof.Core.Aggregate M] → Inkproof.Core.Pyramid M → Array (Array M)
 theorem Inkproof.Core.Pyramid.levels_build_size_pos : ∀ {M : Type u} [inst : Inkproof.Core.Aggregate M] (b : Nat) (h : 2 ≤ b) (a : Array M), 0 < (Inkproof.Core.Pyramid.build b h a).levels.size
 theorem Inkproof.Core.Pyramid.levels_eq : ∀ {M : Type u} [inst : Inkproof.Core.Aggregate M] (self : Inkproof.Core.Pyramid M) (k : Nat) (h : k < self.levels.size), self.levels[k] = Inkproof.Core.Pyramid.levelAt self.branching self.leaves k
+theorem Inkproof.Core.Pyramid.lt_numTiles_iff : ∀ {M : Type u} [inst : Inkproof.Core.Aggregate M] (p : Inkproof.Core.Pyramid M) {n : Nat}, 0 < n → ∀ (k t : Nat), t < p.numTiles n k ↔ t * n < (p.levels.getD k #[]).size
 theorem Inkproof.Core.Pyramid.mem_node_iff : ∀ {M : Type u} [inst : Inkproof.Core.Aggregate M] (p : Inkproof.Core.Pyramid M) (i j k : Nat), j * p.branching ^ k ≤ i ∧ i < (j + 1) * p.branching ^ k ↔ i / p.branching ^ k = j
 constructor Inkproof.Core.Pyramid.mk : {M : Type u} → [inst : Inkproof.Core.Aggregate M] → (branching : Nat) → 2 ≤ branching → (leaves : Array M) → (levels : Array (Array M)) → (∀ (k : Nat) (h : k < levels.size), levels[k] = Inkproof.Core.Pyramid.levelAt branching leaves k) → Inkproof.Core.Pyramid M
+def Inkproof.Core.Pyramid.numTiles : {M : Type u} → [inst : Inkproof.Core.Aggregate M] → Inkproof.Core.Pyramid M → Nat → Nat → Nat
+def Inkproof.Core.Pyramid.ofIndexed : {M : Type w} → [inst : Inkproof.Core.Aggregate M] → {σ : Type u} → {γ : Type v} → [Inkproof.Core.IndexedSeries σ γ] → (branching : Nat) → 2 ≤ branching → (γ → M) → σ → Inkproof.Core.Pyramid M
+theorem Inkproof.Core.Pyramid.ofIndexed_eq_ofMeasure : ∀ {σ : Type u} {γ : Type v} {M : Type w} [inst : Inkproof.Core.Aggregate M] [inst_1 : Inkproof.Core.IndexedSeries σ γ] (b : Nat) (h : 2 ≤ b) (m : γ → M) (s : σ), Inkproof.Core.Pyramid.ofIndexed b h m s = Inkproof.Core.Pyramid.ofMeasure b h m (Inkproof.Core.IndexedSeries.toArray s)
 def Inkproof.Core.Pyramid.ofMeasure : {M : Type u} → [inst : Inkproof.Core.Aggregate M] → {γ : Type v} → (branching : Nat) → 2 ≤ branching → (γ → M) → Array γ → Inkproof.Core.Pyramid M
 def Inkproof.Core.Pyramid.query : {M : Type u} → [inst : Inkproof.Core.Aggregate M] → Inkproof.Core.Pyramid M → Nat → Nat → M
 def Inkproof.Core.Pyramid.queryFrom : {M : Type u} → [Inkproof.Core.Aggregate M] → Array (Array M) → Nat → Nat → Nat → Nat → M
+def Inkproof.Core.Pyramid.queryFromTiled : {M : Type u} → [Inkproof.Core.Aggregate M] → (n : Nat) → 0 < n → Nat → Nat → (Nat → Nat → Array M) → Nat → Nat → Nat → M
+theorem Inkproof.Core.Pyramid.queryFromTiled_eq : ∀ {M : Type u} [inst : Inkproof.Core.Aggregate M] [Inkproof.Core.LawfulAggregate M] (p : Inkproof.Core.Pyramid M) (n : Nat) (hn : 0 < n) (k lo hi : Nat), k < p.levels.size → Inkproof.Core.Pyramid.queryFromTiled n hn p.branching p.levels.size (p.tile n) k lo hi = Inkproof.Core.Pyramid.queryFrom p.levels p.branching k lo hi
 theorem Inkproof.Core.Pyramid.queryFrom_eq : ∀ {M : Type u} [inst : Inkproof.Core.Aggregate M] [Inkproof.Core.LawfulAggregate M] (p : Inkproof.Core.Pyramid M) (k lo hi : Nat), k < p.levels.size → Inkproof.Core.Pyramid.queryFrom p.levels p.branching k lo hi = Inkproof.Core.Aggregate.foldRange (Inkproof.Core.Pyramid.levelAt p.branching p.leaves k) lo hi
+def Inkproof.Core.Pyramid.queryTiled : {M : Type u} → [Inkproof.Core.Aggregate M] → (n : Nat) → 0 < n → Nat → Nat → (Nat → Nat → Array M) → Nat → Nat → M
+theorem Inkproof.Core.Pyramid.queryTiled_build : ∀ {M : Type u} [inst : Inkproof.Core.Aggregate M] [Inkproof.Core.LawfulAggregate M] (b : Nat) (h : 2 ≤ b) (a : Array M) (n : Nat) (hn : 0 < n) (lo hi : Nat), Inkproof.Core.Pyramid.queryTiled n hn b (Inkproof.Core.Pyramid.build b h a).levels.size ((Inkproof.Core.Pyramid.build b h a).tile n) lo hi = Inkproof.Core.Aggregate.foldRange a lo hi
+theorem Inkproof.Core.Pyramid.queryTiled_eq : ∀ {M : Type u} [inst : Inkproof.Core.Aggregate M] [Inkproof.Core.LawfulAggregate M] (p : Inkproof.Core.Pyramid M) (n : Nat) (hn : 0 < n), 0 < p.levels.size → ∀ (lo hi : Nat), Inkproof.Core.Pyramid.queryTiled n hn p.branching p.levels.size (p.tile n) lo hi = p.query lo hi
 theorem Inkproof.Core.Pyramid.query_eq : ∀ {M : Type u} [inst : Inkproof.Core.Aggregate M] [Inkproof.Core.LawfulAggregate M] (p : Inkproof.Core.Pyramid M) (lo hi : Nat), p.query lo hi = Inkproof.Core.Aggregate.foldRange p.leaves lo hi
 theorem Inkproof.Core.Pyramid.query_lowerBound : ∀ {α : Type u} {β : Type v} {M : Type w} [inst : LE α] [inst_1 : DecidableLE α] [Std.IsPreorder α] [inst_3 : Inkproof.Core.Aggregate M] [Inkproof.Core.LawfulAggregate M] (s : Inkproof.Core.Series α β) (b : Nat) (h : 2 ≤ b) (m : α × Option β → M) (x₀ x₁ : α), (Inkproof.Core.Pyramid.ofMeasure b h m s.points).query (s.lowerBound x₀) (s.lowerBound x₁) = Inkproof.Core.Aggregate.fold m (Array.filter (Inkproof.Core.Series.inRange x₀ x₁) s.points)
+theorem Inkproof.Core.Pyramid.query_ofIndexed : ∀ {σ : Type u} {γ : Type v} {M : Type w} [inst : Inkproof.Core.Aggregate M] [inst_1 : Inkproof.Core.IndexedSeries σ γ] [Inkproof.Core.LawfulAggregate M] (b : Nat) (h : 2 ≤ b) (m : γ → M) (s : σ) (lo hi : Nat), (Inkproof.Core.Pyramid.ofIndexed b h m s).query lo hi = Inkproof.Core.Aggregate.fold m ((Inkproof.Core.IndexedSeries.toArray s).extract lo hi)
 theorem Inkproof.Core.Pyramid.query_ofMeasure : ∀ {M : Type u} [inst : Inkproof.Core.Aggregate M] [Inkproof.Core.LawfulAggregate M] {γ : Type v} (b : Nat) (h : 2 ≤ b) (m : γ → M) (xs : Array γ) (lo hi : Nat), (Inkproof.Core.Pyramid.ofMeasure b h m xs).query lo hi = Inkproof.Core.Aggregate.fold m (xs.extract lo hi)
 theorem Inkproof.Core.Pyramid.size_coarsen_lt : ∀ {M : Type u} [inst : Inkproof.Core.Aggregate M] {b : Nat}, 2 ≤ b → ∀ {a : Array M}, 2 ≤ a.size → (Inkproof.Core.Pyramid.coarsen b a).size < a.size
+theorem Inkproof.Core.Pyramid.size_tile : ∀ {M : Type u} [inst : Inkproof.Core.Aggregate M] (p : Inkproof.Core.Pyramid M) (n k t : Nat), (p.tile n k t).size = Min.min ((t + 1) * n) (p.levels.getD k #[]).size - t * n
 theorem Inkproof.Core.Pyramid.size_top_levels_build : ∀ {M : Type u} [inst : Inkproof.Core.Aggregate M] (b : Nat) (h : 2 ≤ b) (a : Array M) {k : Nat} (hk : k + 1 = (Inkproof.Core.Pyramid.build b h a).levels.size), (Inkproof.Core.Pyramid.build b h a).levels[k].size ≤ 1
+def Inkproof.Core.Pyramid.tile : {M : Type u} → [inst : Inkproof.Core.Aggregate M] → Inkproof.Core.Pyramid M → Nat → Nat → Nat → Array M
+theorem Inkproof.Core.Pyramid.tile_eq_empty : ∀ {M : Type u} [inst : Inkproof.Core.Aggregate M] (p : Inkproof.Core.Pyramid M) (n k t : Nat), (p.levels.getD k #[]).size ≤ t * n → p.tile n k t = #[]
 theorem Inkproof.Core.Pyramid.two_le_branching : ∀ {M : Type u} [inst : Inkproof.Core.Aggregate M] (self : Inkproof.Core.Pyramid M), 2 ≤ self.branching
 theorem Inkproof.Core.Pyramid.two_le_size_levels_build : ∀ {M : Type u} [inst : Inkproof.Core.Aggregate M] (b : Nat) (h : 2 ≤ b) (a : Array M) {k : Nat} (hk : k + 1 < (Inkproof.Core.Pyramid.build b h a).levels.size), 2 ≤ (Inkproof.Core.Pyramid.build b h a).levels[k].size
 inductive Inkproof.Core.SegmentError : Type
@@ -148,7 +208,11 @@ instance Inkproof.Core.Series.instEmptyCollection : {α : Type u} → {β : Type
 instance Inkproof.Core.Series.instInhabited : {α : Type u} → {β : Type v} → [inst : LE α] → Inhabited (Inkproof.Core.Series α β)
 def Inkproof.Core.Series.lowerBound : {α : Type u} → {β : Type v} → [inst : LE α] → [DecidableLE α] → Inkproof.Core.Series α β → α → Nat
 def Inkproof.Core.Series.lowerBoundFrom : {α : Type u} → [inst : LE α] → [DecidableLE α] → Array α → α → Nat → Nat → Nat
+def Inkproof.Core.Series.lowerBoundFromBy : {α : Type u} → [inst : LE α] → [DecidableLE α] → (n : Nat) → ((i : Nat) → i < n → α) → α → Nat → Nat → Nat
+theorem Inkproof.Core.Series.lowerBoundFromBy_eq : ∀ {α : Type v} [inst : LE α] [inst_1 : DecidableLE α] (n : Nat) (a : Array α) (hn : n = a.size) (x : α) (lo hi : Nat), Inkproof.Core.Series.lowerBoundFromBy n (fun i h => a[i]) x lo hi = Inkproof.Core.Series.lowerBoundFrom a x lo hi
 theorem Inkproof.Core.Series.lowerBoundFrom_spec : ∀ {α : Type u} [inst : LE α] [inst_1 : DecidableLE α] [Std.IsPreorder α] {xs : Array α}, Inkproof.Core.Sorted xs → ∀ (x : α) (lo hi : Nat), lo ≤ hi → hi ≤ xs.size → (∀ (i : Nat) (h : i < xs.size), i < lo → ¬x ≤ xs[i]) → (∀ (i : Nat) (h : i < xs.size), hi ≤ i → x ≤ xs[i]) → Inkproof.Core.Series.lowerBoundFrom xs x lo hi ≤ hi ∧ ∀ (i : Nat) (h : i < xs.size), i < Inkproof.Core.Series.lowerBoundFrom xs x lo hi ↔ ¬x ≤ xs[i]
+def Inkproof.Core.Series.lowerBoundIndexed : {α : Type u} → [inst : LE α] → [DecidableLE α] → {σ : Type v} → [Inkproof.Core.IndexedSeries σ α] → σ → α → Nat
+theorem Inkproof.Core.Series.lowerBoundIndexed_eq : ∀ {σ : Type u} {α : Type v} [inst : LE α] [inst_1 : DecidableLE α] [inst_2 : Inkproof.Core.IndexedSeries σ α] (xs : σ) (x : α), Inkproof.Core.Series.lowerBoundIndexed xs x = Inkproof.Core.Series.lowerBoundFrom (Inkproof.Core.IndexedSeries.toArray xs) x 0 (Inkproof.Core.IndexedSeries.size xs)
 theorem Inkproof.Core.Series.lowerBound_le_size : ∀ {α : Type u} {β : Type v} [inst : LE α] [inst_1 : DecidableLE α] [Std.IsPreorder α] (s : Inkproof.Core.Series α β) (x : α), s.lowerBound x ≤ s.size
 theorem Inkproof.Core.Series.lt_lowerBound_iff : ∀ {α : Type u} {β : Type v} [inst : LE α] [inst_1 : DecidableLE α] [Std.IsPreorder α] (s : Inkproof.Core.Series α β) (x : α) {i : Nat} (h : i < s.size), i < s.lowerBound x ↔ ¬x ≤ s.xs[i]
 constructor Inkproof.Core.Series.mk : {α : Type u} → {β : Type v} → [inst : LE α] → (xs : Array α) → (values : Array (Option β)) → values.size = xs.size → Inkproof.Core.Sorted xs → Inkproof.Core.Series α β
@@ -206,6 +270,8 @@ instance Inkproof.Core.instBEqOccupancy : BEq Inkproof.Core.Occupancy
 def Inkproof.Core.instBEqOccupancy.beq : Inkproof.Core.Occupancy → Inkproof.Core.Occupancy → Bool
 instance Inkproof.Core.instBEqTotal : {α : Type u_1} → [BEq α] → BEq (Inkproof.Core.Total α)
 def Inkproof.Core.instBEqTotal.beq : {α : Type u_1} → [BEq α] → Inkproof.Core.Total α → Inkproof.Core.Total α → Bool
+instance Inkproof.Core.instDecidableEqFixed : {scale : Nat} → DecidableEq (Inkproof.Core.Fixed scale)
+def Inkproof.Core.instDecidableEqFixed.decEq : {scale : Nat} → (x x_1 : Inkproof.Core.Fixed scale) → Decidable (x = x_1)
 instance Inkproof.Core.instDecidableEqSegmentError : DecidableEq Inkproof.Core.SegmentError
 def Inkproof.Core.instDecidableEqSegmentError.decEq : (x x_1 : Inkproof.Core.SegmentError) → Decidable (x = x_1)
 instance Inkproof.Core.instDecidableEqSeriesError : DecidableEq Inkproof.Core.SeriesError
@@ -222,6 +288,8 @@ instance Inkproof.Core.instReprCount : Repr Inkproof.Core.Count
 def Inkproof.Core.instReprCount.repr : Inkproof.Core.Count → Nat → Std.Format
 instance Inkproof.Core.instReprFirst : {α : Type u_1} → [Repr α] → Repr (Inkproof.Core.First α)
 def Inkproof.Core.instReprFirst.repr : {α : Type u_1} → [Repr α] → Inkproof.Core.First α → Nat → Std.Format
+instance Inkproof.Core.instReprFixed : {scale : Nat} → Repr (Inkproof.Core.Fixed scale)
+def Inkproof.Core.instReprFixed.repr : {scale : Nat} → Inkproof.Core.Fixed scale → Nat → Std.Format
 instance Inkproof.Core.instReprLast : {α : Type u_1} → [Repr α] → Repr (Inkproof.Core.Last α)
 def Inkproof.Core.instReprLast.repr : {α : Type u_1} → [Repr α] → Inkproof.Core.Last α → Nat → Std.Format
 instance Inkproof.Core.instReprMaximum : {α : Type u_1} → [Repr α] → Repr (Inkproof.Core.Maximum α)

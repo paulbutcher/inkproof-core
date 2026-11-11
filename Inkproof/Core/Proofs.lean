@@ -7,3 +7,6 @@ import Inkproof.Core.Proofs.Segmented
 import Inkproof.Core.Proofs.Aggregate
 import Inkproof.Core.Proofs.Pyramid
 import Inkproof.Core.Proofs.Query
+import Inkproof.Core.Proofs.Indexed
+import Inkproof.Core.Proofs.Binning
+import Inkproof.Core.Proofs.Tile
