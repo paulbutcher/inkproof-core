@@ -55,7 +55,17 @@ theorem Inkproof.Core.Fixed.instIsLinearOrder : ∀ {s : Nat}, Std.IsLinearOrder
 instance Inkproof.Core.Fixed.instLE : {s : Nat} → LE (Inkproof.Core.Fixed s)
 constructor Inkproof.Core.Fixed.mk : {scale : Nat} → Int → Inkproof.Core.Fixed scale
 field Inkproof.Core.Fixed.raw : {scale : Nat} → Inkproof.Core.Fixed scale → Int
+def Inkproof.Core.Float.Approximates : Float → Rat → Prop
+def Inkproof.Core.Float.IsFinite : Float → Prop
 def Inkproof.Core.Float.IsOrdered : Float → Prop
+theorem Inkproof.Core.Float.approximates_add : ∀ {x y : Float} {a b : Rat}, Inkproof.Core.Float.toRat x = Option.some a → Inkproof.Core.Float.toRat y = Option.some b → Inkproof.Core.NormalRange (a + b) → Inkproof.Core.Float.Approximates (x + y) (a + b)
+theorem Inkproof.Core.Float.approximates_div : ∀ {x y : Float} {a b : Rat}, Inkproof.Core.Float.toRat x = Option.some a → Inkproof.Core.Float.toRat y = Option.some b → b ≠ 0 → Inkproof.Core.NormalRange (a / b) → Inkproof.Core.Float.Approximates (x / y) (a / b)
+theorem Inkproof.Core.Float.approximates_mul : ∀ {x y : Float} {a b : Rat}, Inkproof.Core.Float.toRat x = Option.some a → Inkproof.Core.Float.toRat y = Option.some b → Inkproof.Core.NormalRange (a * b) → Inkproof.Core.Float.Approximates (x * y) (a * b)
+theorem Inkproof.Core.Float.approximates_sub : ∀ {x y : Float} {a b : Rat}, Inkproof.Core.Float.toRat x = Option.some a → Inkproof.Core.Float.toRat y = Option.some b → Inkproof.Core.NormalRange (a - b) → Inkproof.Core.Float.Approximates (x - y) (a - b)
+theorem Inkproof.Core.Float.le_of_toRat_le : ∀ {x y : Float} {a b : Rat}, Inkproof.Core.Float.toRat x = Option.some a → Inkproof.Core.Float.toRat y = Option.some b → a ≤ b → x ≤ y
+def Inkproof.Core.Float.toRat : Float → Option Rat
+theorem Inkproof.Core.Float.toRat_mono : ∀ {x y : Float} {a b : Rat}, Inkproof.Core.Float.toRat x = Option.some a → Inkproof.Core.Float.toRat y = Option.some b → x ≤ y → a ≤ b
+theorem Inkproof.Core.Float.toRat_ofNat : ∀ {n : Nat}, n < 2 ^ 53 → Inkproof.Core.Float.toRat (OfNat.ofNat n) = Option.some ↑n
 class Inkproof.Core.IndexedSeries : Type u → outParam (Type v) → Type (max u v)
 field Inkproof.Core.IndexedSeries.get : {σ : Type u} → {α : outParam (Type v)} → [self : Inkproof.Core.IndexedSeries σ α] → (s : σ) → (i : Nat) → i < Inkproof.Core.IndexedSeries.size s → α
 theorem Inkproof.Core.IndexedSeries.getElem_toArray : ∀ {σ : Type u} {α : Type v} [inst : Inkproof.Core.IndexedSeries σ α] (s : σ) {i : Nat} (h : i < (Inkproof.Core.IndexedSeries.toArray s).size), (Inkproof.Core.IndexedSeries.toArray s)[i] = Inkproof.Core.IndexedSeries.get s i ⋯
@@ -89,6 +99,7 @@ theorem Inkproof.Core.Minimum.fold_get_eq_none : ∀ {γ : Type v} {α : Type u}
 theorem Inkproof.Core.Minimum.fold_get_eq_some : ∀ {γ : Type v} {α : Type u} [inst : LE α] [inst_1 : DecidableLE α] [Std.IsLinearOrder α] (m : γ → Inkproof.Core.Minimum α) (xs : Array γ) (a : α), (Inkproof.Core.Aggregate.fold m xs).get = Option.some a ↔ (∃ x, x ∈ xs ∧ (m x).get = Option.some a) ∧ ∀ (x : γ), x ∈ xs → ∀ (b : α), (m x).get = Option.some b → a ≤ b
 field Inkproof.Core.Minimum.get : {α : Type u} → Inkproof.Core.Minimum α → Option α
 constructor Inkproof.Core.Minimum.mk : {α : Type u} → Option α → Inkproof.Core.Minimum α
+def Inkproof.Core.NormalRange : Rat → Prop
 structure Inkproof.Core.Occupancy : Type
 field Inkproof.Core.Occupancy.bits : Inkproof.Core.Occupancy → Nat
 def Inkproof.Core.Occupancy.contains : Inkproof.Core.Occupancy → Nat → Bool
@@ -248,6 +259,7 @@ theorem Inkproof.Core.Total.fold_get : ∀ {γ : Type v} {α : Type u} [inst : A
 field Inkproof.Core.Total.get : {α : Type u} → Inkproof.Core.Total α → α
 constructor Inkproof.Core.Total.mk : {α : Type u} → α → Inkproof.Core.Total α
 axiom Inkproof.Core.float_le_linear : (∀ (x : Float), Inkproof.Core.Float.IsOrdered x → x ≤ x) ∧ (∀ (x y z : Float), Inkproof.Core.Float.IsOrdered x → Inkproof.Core.Float.IsOrdered y → Inkproof.Core.Float.IsOrdered z → x ≤ y → y ≤ z → x ≤ z) ∧ (∀ (x y : Float), Inkproof.Core.Float.IsOrdered x → Inkproof.Core.Float.IsOrdered y → x ≤ y → y ≤ x → x = y) ∧ ∀ (x y : Float), Inkproof.Core.Float.IsOrdered x → Inkproof.Core.Float.IsOrdered y → x ≤ y ∨ y ≤ x
+axiom Inkproof.Core.float_rounding_model : (∀ (x y : Float), Inkproof.Core.Float.IsFinite x → Inkproof.Core.Float.IsFinite y → (x ≤ y ↔ ∃ a b, Inkproof.Core.Float.toRat x = Option.some a ∧ Inkproof.Core.Float.toRat y = Option.some b ∧ a ≤ b)) ∧ (∀ (n : Nat), n < 2 ^ 53 → Inkproof.Core.Float.toRat (OfNat.ofNat n) = Option.some ↑n) ∧ ∀ (x y : Float) (a b : Rat), Inkproof.Core.Float.toRat x = Option.some a → Inkproof.Core.Float.toRat y = Option.some b → (Inkproof.Core.NormalRange (a + b) → Inkproof.Core.Float.Approximates (x + y) (a + b)) ∧ (Inkproof.Core.NormalRange (a - b) → Inkproof.Core.Float.Approximates (x - y) (a - b)) ∧ (Inkproof.Core.NormalRange (a * b) → Inkproof.Core.Float.Approximates (x * y) (a * b)) ∧ (b ≠ 0 → Inkproof.Core.NormalRange (a / b) → Inkproof.Core.Float.Approximates (x / y) (a / b))
 instance Inkproof.Core.instAggregateCount : Inkproof.Core.Aggregate Inkproof.Core.Count
 instance Inkproof.Core.instAggregateFirst : {α : Type u} → Inkproof.Core.Aggregate (Inkproof.Core.First α)
 instance Inkproof.Core.instAggregateLast : {α : Type u} → Inkproof.Core.Aggregate (Inkproof.Core.Last α)
@@ -276,6 +288,7 @@ instance Inkproof.Core.instDecidableEqSegmentError : DecidableEq Inkproof.Core.S
 def Inkproof.Core.instDecidableEqSegmentError.decEq : (x x_1 : Inkproof.Core.SegmentError) → Decidable (x = x_1)
 instance Inkproof.Core.instDecidableEqSeriesError : DecidableEq Inkproof.Core.SeriesError
 def Inkproof.Core.instDecidableEqSeriesError.decEq : (x x_1 : Inkproof.Core.SeriesError) → Decidable (x = x_1)
+instance Inkproof.Core.instDecidableNormalRange : (r : Rat) → Decidable (Inkproof.Core.NormalRange r)
 theorem Inkproof.Core.instLawfulAggregateCount : Inkproof.Core.LawfulAggregate Inkproof.Core.Count
 theorem Inkproof.Core.instLawfulAggregateFirst : ∀ {α : Type u}, Inkproof.Core.LawfulAggregate (Inkproof.Core.First α)
 theorem Inkproof.Core.instLawfulAggregateLast : ∀ {α : Type u}, Inkproof.Core.LawfulAggregate (Inkproof.Core.Last α)
@@ -304,7 +317,15 @@ instance Inkproof.Core.instReprSeriesError : Repr Inkproof.Core.SeriesError
 def Inkproof.Core.instReprSeriesError.repr : Inkproof.Core.SeriesError → Nat → Std.Format
 instance Inkproof.Core.instReprTotal : {α : Type u_1} → [Repr α] → Repr (Inkproof.Core.Total α)
 def Inkproof.Core.instReprTotal.repr : {α : Type u_1} → [Repr α] → Inkproof.Core.Total α → Nat → Std.Format
+def Inkproof.Core.maxFloat : Rat
+def Inkproof.Core.minNormalFloat : Rat
 def Inkproof.Core.negZeroBits : UInt64
+def Inkproof.Core.ratAbs : Rat → Rat
+theorem Inkproof.Core.ratAbs_of_neg : ∀ {r : Rat}, r < 0 → Inkproof.Core.ratAbs r = -r
+theorem Inkproof.Core.ratAbs_of_nonneg : ∀ {r : Rat}, 0 ≤ r → Inkproof.Core.ratAbs r = r
+def Inkproof.Core.scaleTwoPow : Nat → Int → Rat
+theorem Inkproof.Core.scaleTwoPow_of_neg : ∀ (m : Nat) {e : Int}, e < 0 → Inkproof.Core.scaleTwoPow m e = ↑m / ↑(2 ^ (-e).toNat)
+theorem Inkproof.Core.scaleTwoPow_of_nonneg : ∀ (m : Nat) {e : Int}, 0 ≤ e → Inkproof.Core.scaleTwoPow m e = ↑m * ↑(2 ^ e.toNat)
 theorem Inkproof.Core.sorted_empty : ∀ {α : Type u} [inst : LE α], Inkproof.Core.Sorted #[]
 theorem Inkproof.Core.sorted_of_le_succ : ∀ {α : Type u} [inst : LE α] [Std.IsPreorder α] {xs : Array α}, (∀ (i : Nat) (hi : i + 1 < xs.size), xs[i] ≤ xs[i + 1]) → Inkproof.Core.Sorted xs
 theorem Inkproof.Core.sorted_of_pairwise : ∀ {α : Type u} [inst : LE α] {xs : Array α}, List.Pairwise (fun x1 x2 => x1 ≤ x2) xs.toList → Inkproof.Core.Sorted xs

@@ -63,6 +63,58 @@ def axiomHolds : TestCase := .mk "the FP-2 axiom holds on this platform's floats
       check (decide (a ≤ b) || decide (b ≤ a)) s!"not total at {a}, {b}"
     | _ => pure ()
 
-def tests : List TestCase := [ofFloatRejectsOnlyNaN, axiomHolds]
+def finitePair (g : Rng) : (Float × Float) × Rng :=
+  let (x, g) := genFloat g
+  let (y, g) := genFloat g
+  ((x, y), g)
+
+/-- Exponents near 1 make sums and differences cancel and products stay in range. -/
+def genNearOne (g : Rng) : Float × Rng :=
+  let (hi, g) := g.below (2 ^ 20)
+  let (lo, g) := g.below (2 ^ 32)
+  let (e, g) := g.below 40
+  let (sign, g) := g.below 2
+  let bits := (sign * 2 ^ 63 + (1003 + e) * 2 ^ 52 + hi * 2 ^ 32 + lo)
+  (Float.ofBits (UInt64.ofNat bits), g)
+
+def nearPair (g : Rng) : (Float × Float) × Rng :=
+  let (x, g) := genNearOne g
+  let (y, g) := genNearOne g
+  ((x, y), g)
+
+def toRatValues : TestCase := .mk "toRat reads exact values" do
+  check (Float.toRat 1.0 == some 1) "1.0"
+  check (Float.toRat (-0.75) == some (-3 / 4)) "-0.75"
+  check (Float.toRat 0.0 == some 0 && Float.toRat (-0.0) == some 0) "zeros"
+  check (Float.toRat (Float.ofBits 1) == some (scaleTwoPow 1 (-1074))) "least subnormal"
+  check (Float.toRat (Float.ofBits 0x7fefffffffffffff) == some maxFloat) "largest finite"
+  check (Float.toRat (0.0 / 0.0) == none && Float.toRat (1.0 / 0.0) == none) "NaN and infinity"
+
+def roundingModel : (Float × Float) → Except String Unit := fun (x, y) =>
+  match Float.toRat x, Float.toRat y with
+  | some a, some b => do
+    let within (name : String) (z : Float) (r : Rat) : Except String Unit :=
+      if decide (NormalRange r) then
+        match Float.toRat z with
+        | none => check false s!"{name} of {x} and {y} is not finite"
+        | some q => check (ratAbs (q - r) ≤ ratAbs r / scaleTwoPow 1 53) s!"{name} of {x} and {y} is off"
+      else pure ()
+    within "sum" (x + y) (a + b)
+    within "difference" (x - y) (a - b)
+    within "product" (x * y) (a * b)
+    if b != 0 then within "quotient" (x / y) (a / b)
+    check (decide (x ≤ y) == decide (a ≤ b)) s!"order of {x} and {y} disagrees with their values"
+  | _, _ => pure ()
+
+def roundingModelHolds : TestCase := .mk "the rounding model holds on this platform's floats" do
+  forAll 5000 finitePair roundingModel
+  forAll 5000 nearPair roundingModel
+
+def literalsExact : TestCase := .mk "integer literals are exact" <|
+  forAll 2000 (fun g => g.below (2 ^ 53)) fun n =>
+    check (Float.toRat (Float.ofNat n) == some (n : Rat)) s!"{n}"
+
+def tests : List TestCase :=
+  [ofFloatRejectsOnlyNaN, axiomHolds, toRatValues, roundingModelHolds, literalsExact]
 
 end InkproofCoreTest.FloatTests

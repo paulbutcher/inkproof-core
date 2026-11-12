@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [0.4.0]
+
+- `Float.toRat`, the exact value of a finite float, and `float_rounding_model`, an axiom that `+`, `-`, `*` and `/` round to within half an ulp (relative error `2 ^ -53`, binary64).
+
 ## [0.3.0]
 
 - `Binning`, a monotone map from x-values to pixel columns, with integer, fixed-point and break-based (ordered float) instances.
