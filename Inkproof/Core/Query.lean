@@ -13,15 +13,20 @@ namespace Series
 
 variable {α : Type u} {β : Type v} [LE α] [DecidableLE α]
 
-/-- Binary search between `lo` and `hi` for the first index whose x-value is at least `x`. -/
-def lowerBoundFrom (xs : Array α) (x : α) (lo hi : Nat) : Nat :=
+/-- Binary search between `lo` and `hi` for the first index below `n` whose x-value, read through
+`get`, is at least `x`. -/
+def lowerBoundFromBy (n : Nat) (get : (i : Nat) → i < n → α) (x : α) (lo hi : Nat) : Nat :=
   if lo < hi then
     let mid := (lo + hi) / 2
-    if h : mid < xs.size then
-      if x ≤ xs[mid] then lowerBoundFrom xs x lo mid else lowerBoundFrom xs x (mid + 1) hi
+    if h : mid < n then
+      if x ≤ get mid h then lowerBoundFromBy n get x lo mid else lowerBoundFromBy n get x (mid + 1) hi
     else lo
   else lo
 termination_by hi - lo
+
+/-- `lowerBoundFromBy` over an array's x-values. -/
+def lowerBoundFrom (xs : Array α) (x : α) (lo hi : Nat) : Nat :=
+  lowerBoundFromBy xs.size (fun i h => xs[i]) x lo hi
 
 /-- The index of the first point whose x-value is at least `x`, or `size` if there is none. The
 points before it are exactly those below `x` (`Series.lt_lowerBound_iff`). -/

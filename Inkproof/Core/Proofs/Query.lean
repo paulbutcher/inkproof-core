@@ -58,9 +58,10 @@ theorem lowerBoundFrom_spec {xs : Array α} (hs : Sorted xs) (x : α) (lo hi : N
     (habove : ∀ i (h : i < xs.size), hi ≤ i → x ≤ xs[i]) :
     lowerBoundFrom xs x lo hi ≤ hi ∧
       ∀ i (h : i < xs.size), i < lowerBoundFrom xs x lo hi ↔ ¬ x ≤ xs[i] := by
-  induction lo, hi using lowerBoundFrom.induct xs x with
+  unfold lowerBoundFrom
+  induction lo, hi using lowerBoundFromBy.induct xs.size (fun i h => xs[i]) x with
   | case1 lo hi hlt mid hmid hx ih =>
-    rw [lowerBoundFrom]
+    rw [lowerBoundFromBy]
     simp only [hlt, ite_true, mid, hmid, dite_true, hx]
     have := ih (by omega) (by omega) hbelow (fun i h hi => by
       rcases Nat.eq_or_lt_of_le hi with rfl | hlt'
@@ -68,7 +69,7 @@ theorem lowerBoundFrom_spec {xs : Array α} (hs : Sorted xs) (x : α) (lo hi : N
       · exact Std.IsPreorder.le_trans _ _ _ hx (hs _ _ hlt' h))
     exact ⟨Nat.le_trans this.1 (by omega), this.2⟩
   | case2 lo hi hlt mid hmid hx ih =>
-    rw [lowerBoundFrom]
+    rw [lowerBoundFromBy]
     simp only [hlt, ite_true, mid, hmid, dite_true, hx, ite_false]
     exact ih (by omega) hhi (fun i h hi => by
       rcases Nat.lt_succ_iff_lt_or_eq.mp hi with hlt' | rfl
@@ -80,7 +81,7 @@ theorem lowerBoundFrom_spec {xs : Array α} (hs : Sorted xs) (x : α) (lo hi : N
   | case3 lo hi hlt mid hmid =>
     exact absurd hhi (by omega)
   | case4 lo hi hlt =>
-    rw [lowerBoundFrom]
+    rw [lowerBoundFromBy]
     simp only [hlt, ite_false]
     refine ⟨hle, fun i h => ⟨hbelow i h, fun hx => ?_⟩⟩
     by_cases hi : i < lo

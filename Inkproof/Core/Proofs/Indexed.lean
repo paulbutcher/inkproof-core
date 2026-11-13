@@ -60,22 +60,7 @@ variable {σ : Type u} {α : Type v} [LE α] [DecidableLE α] [IndexedSeries σ 
 theorem lowerBoundFromBy_eq (n : Nat) (a : Array α) (hn : n = a.size) (x : α) (lo hi : Nat) :
     lowerBoundFromBy n (fun i h => a[i]'(hn ▸ h)) x lo hi = lowerBoundFrom a x lo hi := by
   subst hn
-  induction lo, hi using lowerBoundFrom.induct a x with
-  | case1 lo hi hlt mid hmid hle ih =>
-    rw [lowerBoundFromBy, lowerBoundFrom]
-    simp only [mid] at hmid hle ih
-    simp [hlt, hmid, hle, ih]
-  | case2 lo hi hlt mid hmid hle ih =>
-    rw [lowerBoundFromBy, lowerBoundFrom]
-    simp only [mid] at hmid hle ih
-    simp [hlt, hmid, hle, ih]
-  | case3 lo hi hlt mid hmid =>
-    rw [lowerBoundFromBy, lowerBoundFrom]
-    simp only [mid] at hmid
-    simp [hlt, hmid]
-  | case4 lo hi hlt =>
-    rw [lowerBoundFromBy, lowerBoundFrom]
-    simp [hlt]
+  rfl
 
 /-- Searching an indexed container finds what `Series.lowerBound` finds on its elements, so the
 index range for an x-range, and with it PROOF-1 over x-ranges, is unchanged. -/

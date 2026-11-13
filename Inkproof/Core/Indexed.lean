@@ -47,16 +47,6 @@ namespace Series
 
 variable {α : Type u} [LE α] [DecidableLE α]
 
-/-- `lowerBoundFrom` reading x-values through `get`, which is defined below `n`. -/
-def lowerBoundFromBy (n : Nat) (get : (i : Nat) → i < n → α) (x : α) (lo hi : Nat) : Nat :=
-  if lo < hi then
-    let mid := (lo + hi) / 2
-    if h : mid < n then
-      if x ≤ get mid h then lowerBoundFromBy n get x lo mid else lowerBoundFromBy n get x (mid + 1) hi
-    else lo
-  else lo
-termination_by hi - lo
-
 /-- `Series.lowerBound` for x-values held in any indexed container: the index of the first
 x-value at least `x` (`Series.lowerBoundIndexed_eq`). -/
 def lowerBoundIndexed {σ : Type v} [IndexedSeries σ α] (xs : σ) (x : α) : Nat :=
