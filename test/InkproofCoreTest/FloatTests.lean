@@ -5,8 +5,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 import Inkproof.Core
 import InkproofCoreTest.Harness
 
-/-! What proofs cannot reach because floats are opaque to them: `OrdFloat.ofFloat?`, and the FP-2
-axiom itself, checked against the platform's floats natively and under Lasm. -/
+/-! What proofs do not cover: that `OrdFloat.ofFloat?` keeps the value, and Lean's model of `Float` (`float_le_linear`
+and `float_rounding_model`) checked against the compiled float operations, natively and under Lasm. -/
 
 namespace InkproofCoreTest.FloatTests
 
@@ -54,7 +54,7 @@ def triple (g : Rng) : (Option OrdFloat × Option OrdFloat × Option OrdFloat) �
   ((a, b, c), g)
 
 /-- The four parts of `float_le_linear`, with equality checked on the bits. -/
-def axiomHolds : TestCase := .mk "the FP-2 axiom holds on this platform's floats" <|
+def orderHolds : TestCase := .mk "float_le_linear holds of the compiled floats" <|
   forAll 5000 triple fun
     | (some a, some b, some c) => do
       check (a ≤ a) s!"not reflexive at {a}"
@@ -106,7 +106,7 @@ def roundingModel : (Float × Float) → Except String Unit := fun (x, y) =>
     check (decide (x ≤ y) == decide (a ≤ b)) s!"order of {x} and {y} disagrees with their values"
   | _, _ => pure ()
 
-def roundingModelHolds : TestCase := .mk "the rounding model holds on this platform's floats" do
+def roundingModelHolds : TestCase := .mk "the rounding model holds of the compiled floats" do
   forAll 5000 finitePair roundingModel
   forAll 5000 nearPair roundingModel
 
@@ -115,6 +115,6 @@ def literalsExact : TestCase := .mk "integer literals are exact" <|
     check (Float.toRat (Float.ofNat n) == some (n : Rat)) s!"{n}"
 
 def tests : List TestCase :=
-  [ofFloatRejectsOnlyNaN, axiomHolds, toRatValues, roundingModelHolds, literalsExact]
+  [ofFloatRejectsOnlyNaN, orderHolds, toRatValues, roundingModelHolds, literalsExact]
 
 end InkproofCoreTest.FloatTests

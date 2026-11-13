@@ -17,11 +17,15 @@ theorem scaleTwoPow_of_neg (m : Nat) {e : Int} (h : e < 0) :
     scaleTwoPow m e = (m : Rat) / ((2 ^ (-e).toNat : Nat) : Rat) := by
   simp [scaleTwoPow, Int.not_le.mpr h]
 
-/-- The exact value of a finite binary64 float, read from its bits; `none` for NaN and the
-infinities. Both zeros give `0`.
+theorem scaleTwoPow_zero (e : Int) : scaleTwoPow 0 e = 0 := by
+  unfold scaleTwoPow
+  split
+  · simp
+  · rw [Rat.div_def]; simp
 
-No theorem states what this computes: `Float.toBits` is opaque to the kernel, so the bit arithmetic
-cannot be unfolded, and the tests check it against the platform's floats instead. -/
+/-- The exact value of a finite binary64 float, read from its bits; `none` for NaN and the
+infinities. Both zeros give `0`. `Float.toRat_eq_value` states that this is the value of the float in
+Lean's model. -/
 def Float.toRat (x : Float) : Option Rat :=
   let b := x.toBits
   let e := ((b >>> 52) &&& 0x7ff).toNat

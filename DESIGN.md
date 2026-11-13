@@ -42,15 +42,25 @@ Inkproof.Core holds sorted series with explicit missing data and gaps, mergeable
 
 ## Binning, indexed data and tiles
 
-- `Binning` holds a column count and a monotone map from the x-domain to columns below it (CORE-4). `ofInt`, `ofNat` and `ofFixed` split a range into equal columns in exact integer arithmetic (FP-4), `Fixed` being an integer with a decimal scale. `ofBreaks` counts the breaks at or below a point, so it needs only an order and bins `OrdFloat` x-values with breaks the caller computed; float arithmetic is opaque to proofs, so monotonicity could not be proved for a float formula.
+- `Binning` holds a column count and a monotone map from the x-domain to columns below it (CORE-4). `ofInt`, `ofNat` and `ofFixed` split a range into equal columns in exact integer arithmetic (FP-4), `Fixed` being an integer with a decimal scale. `ofBreaks` counts the breaks at or below a point, so it needs only an order and bins `OrdFloat` x-values with breaks the caller computed; a float formula's monotonicity would rest on the rounding axiom, so it is left to the caller.
 - `IndexedSeries` is size plus index access, with instances for `Array`, `ByteArray` and `FloatArray` (CORE-8). `Pyramid.ofIndexed` and `Series.lowerBoundIndexed` read through it and are proved equal to the array versions on `IndexedSeries.toArray`, so PROOF-1 and the lower-bound specification carry over unchanged.
 - A tile is a fixed run of `n` nodes of one level (CORE-7). `Pyramid.queryTiled` takes the branching, the number of levels and a tile fetcher, and is proved equal to `Pyramid.query` for any tile size; it touches only the tiles holding the partial groups at each level. Wire encoding is out of scope.
 
 ## Floats
 
 - `OrdFloat` wraps a `Float` with a proof that it is neither NaN nor `-0.0` (FP-2). `OrdFloat.ofFloat?` rejects NaN and turns `-0.0` into `0.0`, so equal values have one representation.
-- `Inkproof.Core.Axioms` holds the only axiom the library adds, `float_le_linear`: `Float`'s `≤` is a linear order on such floats. `OrdFloat`'s order instance rests on it alone.
-- Floats are opaque to proofs, so two things are checked by tests instead, natively and under Lasm: that `ofFloat?` rejects exactly NaN, and that the axiom holds on the platform's floats.
+- `float_le_linear` is a theorem: `Float` is defined over `Float.Model`, an IEEE 754 binary64 model, and `Internal.FloatModel` unpacks its bits into an integer key that orders the non-NaN floats exactly as `≤` does. `OrdFloat`'s order instance rests on it. `Float.toRat_eq_value` shows `Float.toRat` is the value of the model's unpacked float.
+- `Inkproof.Core.Axioms` holds the only axiom the library adds, `float_rounding_model` (FP-3): `≤` agrees with the exact values, integer literals below `2 ^ 53` are exact, and `+ - * /` round to within `2 ^ -53` relative error where the exact result is zero or normal. It is binary64 only. What stays trusted is that Lean's compiled float operations match the model.
+- Tests check the model against compiled code, natively and under Lasm: that `ofFloat?` keeps the value and removes `-0.0` (rejecting exactly NaN is proved), that `float_le_linear` holds of the platform's floats, and that the rounding axiom does.
+
+### Proving `float_rounding_model`
+
+Assessed against Lean v4.35.0 core, which has no theory of its rounding: `Float.Model` states that it is not a basis for a float library and carries no lemmas beyond what the operations need. Nothing outside core was found to help. opencompl/fp-lean models bit-blasted IEEE floats on a nightly toolchain, is unfinished, and would need a proved equivalence with `Float.Model` before use, so it would add work rather than remove it.
+
+- Parts 1 and 2 (order agrees with exact values, literals) follow from `Internal.FloatModel.unpack_cases` and `Float.toRat_eq_value`, plus `UnpackedFloat.ofNat` for literals: about 200 lines, one to two days.
+- Part 3 needs one error lemma about `UnpackedFloat.round` (shifting by `targetExponent` with round and sticky bits, `roundToNearestEven`, the carry that re-shifts, and the bound on `totalExponent`), after which `add`, `sub` and `mul` are exact integer arithmetic followed by `round`. `div` additionally needs its quotient and remainder to give the right `Accuracy`. About 800 to 1500 lines, one to three weeks.
+- Everything is in modules that compile to nothing, so Lasm is unaffected; the proofs stay out of browser builds like the other theorems (PLAT-3). Adding no dependency keeps every consumer's build as it is.
+- Proving it would shrink the trusted base to the compiled-versus-model match alone, which the tests already check. The human decides whether that is worth the weeks; nothing in Scale's use of the axiom is blocked meanwhile.
 
 ## Testing
 

@@ -7,6 +7,8 @@ import Inkproof.Core.Segmented
 import Inkproof.Core.Aggregate
 import Inkproof.Core.Pyramid
 import Inkproof.Core.FloatValue
+import Inkproof.Core.FloatModel
+import Inkproof.Core.FloatOrder
 import Inkproof.Core.Axioms
 import Inkproof.Core.OrdFloat
 import Inkproof.Core.Query

@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [0.5.0]
+
+- `float_le_linear` is now a theorem proved from Lean's model of `Float`, no longer an axiom.
+- `Float.toRat_eq_value` states what `Float.toRat` computes.
+- `OrdFloat.ofFloat?_eq_none_iff` states that `ofFloat?` rejects exactly NaN.
+
 ## [0.4.0]
 
 - `Float.toRat`, the exact value of a finite float, and `float_rounding_model`, an axiom that `+`, `-`, `*` and `/` round to within half an ulp (relative error `2 ^ -53`, binary64).

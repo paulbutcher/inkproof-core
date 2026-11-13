@@ -9,23 +9,6 @@ if a published theorem depends on an axiom that is not here or in Lean itself. -
 
 namespace Inkproof.Core
 
-/-- The bits of `-0.0`, which compares equal to `0.0` but is a different value. -/
-def negZeroBits : UInt64 := 0x8000000000000000
-
-/-- A float that is not NaN and not `-0.0`: the floats on which comparison is a linear order. -/
-def Float.IsOrdered (x : Float) : Prop := x.isNaN = false ∧ x.toBits ≠ negZeroBits
-
-/-- FP-2: `Float`'s `≤` is a linear order on floats that are neither NaN nor `-0.0`. Lean's floats
-are opaque to proofs, so this is assumed, not proved. IEEE 754 comparison satisfies it: it is a
-total preorder on non-NaN values whose only distinct equal pair is `0.0` and `-0.0`. The test
-subproject checks it on the platforms it runs on. -/
-axiom float_le_linear :
-    (∀ x : Float, Float.IsOrdered x → x ≤ x) ∧
-    (∀ x y z : Float, Float.IsOrdered x → Float.IsOrdered y → Float.IsOrdered z →
-      x ≤ y → y ≤ z → x ≤ z) ∧
-    (∀ x y : Float, Float.IsOrdered x → Float.IsOrdered y → x ≤ y → y ≤ x → x = y) ∧
-    (∀ x y : Float, Float.IsOrdered x → Float.IsOrdered y → x ≤ y ∨ y ≤ x)
-
 /-- FP-3: the rounding model of Lean's `Float`, which is IEEE 754 binary64 with round to nearest even.
 Three parts, all about the exact value `Float.toRat` of finite floats:
 - `≤` agrees with `≤` on exact values.
@@ -34,10 +17,11 @@ Three parts, all about the exact value `Float.toRat` of finite floats:
   normal range, the computed float is finite and within half an ulp of it, which is a relative
   error of at most `2 ^ -53`.
 
-Lean's floats are opaque to proofs, so this is assumed, not proved. It is the defining property of
-IEEE 754 round to nearest, which every platform Lean and Lasm target implements for binary64. It
-says nothing of binary32, whose relative error is `2 ^ -24`. The test subproject checks it on the
-platforms it runs on. -/
+Lean defines `Float` over a model of IEEE 754 binary64, but proves nothing about its rounding, so this
+is assumed. The first two parts are provable from the model; the third needs the error theory of
+round to nearest, which DESIGN.md assesses. What stays trusted is that Lean's compiled float
+operations match the model. It says nothing of binary32, whose relative error is `2 ^ -24`. The test
+subproject checks it against compiled code, natively and under Lasm. -/
 axiom float_rounding_model :
     (∀ x y : Float, Float.IsFinite x → Float.IsFinite y →
       (x ≤ y ↔ ∃ a b, Float.toRat x = some a ∧ Float.toRat y = some b ∧ a ≤ b)) ∧
