@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [0.6.0]
+
+- `ratAbs` is replaced by Lean core's `Rat.abs`.
+- `rat_abs_add_le`, `rat_abs_mul` and `rat_abs_le_iff` state the absolute value lemmas that consumers reuse.
+- `Float.Approximates.rel` and `Float.Approximates.error_step` state the float error lemmas that consumers reuse.
+
 ## [0.5.1]
 
 - `Series.lowerBoundFrom` is defined through `Series.lowerBoundFromBy`, leaving one binary search.
