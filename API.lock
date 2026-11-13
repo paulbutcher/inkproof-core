@@ -56,6 +56,8 @@ instance Inkproof.Core.Fixed.instLE : {s : Nat} → LE (Inkproof.Core.Fixed s)
 constructor Inkproof.Core.Fixed.mk : {scale : Nat} → Int → Inkproof.Core.Fixed scale
 field Inkproof.Core.Fixed.raw : {scale : Nat} → Inkproof.Core.Fixed scale → Int
 def Inkproof.Core.Float.Approximates : Float → Rat → Prop
+theorem Inkproof.Core.Float.Approximates.error_step : ∀ {z : Float} {r s e : Rat}, Inkproof.Core.Float.Approximates z r → (r - s).abs ≤ e → ∃ q, Inkproof.Core.Float.toRat z = Option.some q ∧ (q - s).abs ≤ e + (s.abs + e) / Inkproof.Core.scaleTwoPow 1 53
+theorem Inkproof.Core.Float.Approximates.rel : ∀ {z : Float} {r : Rat}, Inkproof.Core.Float.Approximates z r → ∃ q δ, Inkproof.Core.Float.toRat z = Option.some q ∧ δ.abs ≤ 1 / Inkproof.Core.scaleTwoPow 1 53 ∧ q = r * (1 + δ)
 def Inkproof.Core.Float.IsFinite : Float → Prop
 def Inkproof.Core.Float.IsOrdered : Float → Prop
 theorem Inkproof.Core.Float.approximates_add : ∀ {x y : Float} {a b : Rat}, Inkproof.Core.Float.toRat x = Option.some a → Inkproof.Core.Float.toRat y = Option.some b → Inkproof.Core.NormalRange (a + b) → Inkproof.Core.Float.Approximates (x + y) (a + b)
@@ -322,9 +324,9 @@ def Inkproof.Core.instReprTotal.repr : {α : Type u_1} → [Repr α] → Inkproo
 def Inkproof.Core.maxFloat : Rat
 def Inkproof.Core.minNormalFloat : Rat
 def Inkproof.Core.negZeroBits : UInt64
-def Inkproof.Core.ratAbs : Rat → Rat
-theorem Inkproof.Core.ratAbs_of_neg : ∀ {r : Rat}, r < 0 → Inkproof.Core.ratAbs r = -r
-theorem Inkproof.Core.ratAbs_of_nonneg : ∀ {r : Rat}, 0 ≤ r → Inkproof.Core.ratAbs r = r
+theorem Inkproof.Core.rat_abs_add_le : ∀ (x y : Rat), (x + y).abs ≤ x.abs + y.abs
+theorem Inkproof.Core.rat_abs_le_iff : ∀ {x y : Rat}, x.abs ≤ y ↔ -y ≤ x ∧ x ≤ y
+theorem Inkproof.Core.rat_abs_mul : ∀ (x y : Rat), (x * y).abs = x.abs * y.abs
 def Inkproof.Core.scaleTwoPow : Nat → Int → Rat
 theorem Inkproof.Core.scaleTwoPow_of_neg : ∀ (m : Nat) {e : Int}, e < 0 → Inkproof.Core.scaleTwoPow m e = ↑m / ↑(2 ^ (-e).toNat)
 theorem Inkproof.Core.scaleTwoPow_of_nonneg : ∀ (m : Nat) {e : Int}, 0 ≤ e → Inkproof.Core.scaleTwoPow m e = ↑m * ↑(2 ^ e.toNat)

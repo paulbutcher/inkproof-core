@@ -97,7 +97,7 @@ def roundingModel : (Float × Float) → Except String Unit := fun (x, y) =>
       if decide (NormalRange r) then
         match Float.toRat z with
         | none => check false s!"{name} of {x} and {y} is not finite"
-        | some q => check (ratAbs (q - r) ≤ ratAbs r / scaleTwoPow 1 53) s!"{name} of {x} and {y} is off"
+        | some q => check ((q - r).abs ≤ r.abs / scaleTwoPow 1 53) s!"{name} of {x} and {y} is off"
       else pure ()
     within "sum" (x + y) (a + b)
     within "difference" (x - y) (a - b)
