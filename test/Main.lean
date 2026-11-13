@@ -3,17 +3,15 @@ Copyright (c) 2026 Paul Butcher. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 -/
 import Inkproof.Core
-import InkproofCoreTest.Harness
+import InkproofTools.Test.Harness
+import InkproofTools.Test.Platform
 import InkproofCoreTest.FloatTests
 import InkproofCoreTest.CoreTests
+import InkproofCoreTest.PlausibleTests
 
-open InkproofCoreTest
+open InkproofTools.Test InkproofCoreTest
 
-/-- Guards against the Lasm step silently running a native build. -/
-def platformTest (expectWasm : Bool) : TestCase :=
-  .mk "runs on the expected platform" do
-    check (System.Platform.isEmscripten == expectWasm)
-      s!"isEmscripten = {System.Platform.isEmscripten}, target {System.Platform.target}"
-
-def main (args : List String) : IO UInt32 :=
-  runTests (platformTest (args.contains "--expect-wasm") :: FloatTests.tests ++ CoreTests.tests)
+def main (args : List String) : IO UInt32 := do
+  let code ← runTests (platformTest (args.contains "--expect-wasm") :: FloatTests.tests ++ CoreTests.tests)
+  let plausible ← PlausibleTests.run
+  return if code == 0 && plausible == 0 then 0 else 1

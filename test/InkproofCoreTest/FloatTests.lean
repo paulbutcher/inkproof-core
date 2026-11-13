@@ -3,14 +3,14 @@ Copyright (c) 2026 Paul Butcher. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 -/
 import Inkproof.Core
-import InkproofCoreTest.Harness
+import InkproofTools.Test.Harness
 
 /-! What proofs do not cover: that `OrdFloat.ofFloat?` keeps the value, and Lean's model of `Float` (`float_le_linear`
 and `float_rounding_model`) checked against the compiled float operations, natively and under Lasm. -/
 
 namespace InkproofCoreTest.FloatTests
 
-open Inkproof.Core
+open InkproofTools.Test Inkproof.Core
 
 def specials : Array Float :=
   #[0.0, -0.0, 1.0, -1.0, 0.5, 1e308, -1e308, 5e-324, -5e-324, 1.0 / 0.0, -1.0 / 0.0, 0.0 / 0.0,

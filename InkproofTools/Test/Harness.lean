@@ -3,7 +3,7 @@ Copyright (c) 2026 Paul Butcher. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 -/
 
-namespace InkproofCoreTest
+namespace InkproofTools.Test
 
 structure TestCase where
   name : String
@@ -24,6 +24,11 @@ def next (g : Rng) : Rng := ⟨g.state * 6364136223846793005 + 14426950408889634
 def below (g : Rng) (bound : Nat) : Nat × Rng :=
   let g' := g.next
   ((g'.state >>> 33).toNat % max bound 1, g')
+
+/-- `true` with probability `1 / n`; always `true` when `n` is at most `1`. -/
+def oneIn (g : Rng) (n : Nat) : Bool × Rng :=
+  let (k, g') := g.below n
+  (k == 0, g')
 
 def array {γ : Type} (g : Rng) (size : Nat) (elem : Rng → γ × Rng) : Array γ × Rng := Id.run do
   let mut g := g
@@ -57,4 +62,4 @@ def runTests (cases : List TestCase) : IO UInt32 := do
   IO.println s!"{cases.length - failed}/{cases.length} passed"
   return if failed == 0 then 0 else 1
 
-end InkproofCoreTest
+end InkproofTools.Test

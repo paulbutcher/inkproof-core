@@ -3,7 +3,7 @@ Copyright (c) 2026 Paul Butcher. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 -/
 import Inkproof.Core
-import InkproofCoreTest.Harness
+import InkproofTools.Test.Harness
 
 /-! Binning, indexed containers and tiled queries on generated data, natively and under Lasm.
 Monotonicity, exactness over every `Nat` and `Int`, and tiled equal to untiled are proved; these
@@ -12,24 +12,7 @@ proved specification. -/
 
 namespace InkproofCoreTest.CoreTests
 
-open Inkproof.Core
-
-def genBounds (g : Rng) : (Nat × Nat × Nat × Nat) × Rng :=
-  let (x₀, g) := g.below 1000000
-  let (span, g) := g.below 2000000000
-  let (w, g) := g.below 2000
-  let (x, g) := g.below 3000000000
-  ((x₀, x₀ + span + 1, w, x), g)
-
-/-- Column `k` is where `k * (x₁ - x₀) ≤ (x - x₀) * w < (k + 1) * (x₁ - x₀)`, with no rounding. -/
-def exactColumns : TestCase := .mk "timestamp binning has no rounding error" <|
-  forAll 3000 genBounds fun (x₀, x₁, w₀, x) =>
-    let w := w₀ + 1
-    let k := (Binning.ofNat x₀ x₁ w (Nat.succ_pos _)).col x
-    if x < x₀ then check (k == 0) "below the range is not column 0"
-    else if x₁ ≤ x then check (k == w - 1) "past the range is not the last column"
-    else check (k * (x₁ - x₀) ≤ (x - x₀) * w && (x - x₀) * w < (k + 1) * (x₁ - x₀))
-      s!"column {k} is not the exact floor"
+open InkproofTools.Test Inkproof.Core
 
 def genFloatArray (g : Rng) : Array Float × Rng :=
   let (n, g) := g.below 40
@@ -45,11 +28,6 @@ def floatBinningMonotone : TestCase := .mk "binning ordered floats by breaks is 
     let cols := probes.map b.col
     check (cols.all (· < b.columns)) "column out of range"
     check ((cols.zip (cols.extract 1 cols.size)).all fun (a, c) => a ≤ c) "not monotone"
-
-def fixedBinning : TestCase := .mk "fixed-point binning agrees with its raw integers" <|
-  forAll 1000 genBounds fun (x₀, x₁, w, x) =>
-    check ((Binning.ofFixed (s := 3) x₀ x₁ (w + 1) (Nat.succ_pos _)).col ⟨x⟩ ==
-      (Binning.ofNat x₀ x₁ (w + 1) (Nat.succ_pos _)).col x) "differs from the integer binning"
 
 abbrev Probe := First Nat × Last Nat × Count
 
@@ -90,6 +68,6 @@ def floatBuffer : TestCase := .mk "float buffers search as the plain array does"
         s!"lower bound of {x} differs"
 
 def tests : List TestCase :=
-  [exactColumns, floatBinningMonotone, fixedBinning, indexedAndTiled, floatBuffer]
+  [floatBinningMonotone, indexedAndTiled, floatBuffer]
 
 end InkproofCoreTest.CoreTests

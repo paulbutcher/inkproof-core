@@ -8,7 +8,7 @@ Inkproof.Core holds sorted series with explicit missing data and gaps, mergeable
 - Runtime modules live under `Inkproof.Core`, and `import Inkproof.Core` brings in all of them; this is what a browser build links. They may hold the proofs their own definitions need, which compile to nothing.
 - Published theorems live under `Inkproof.Core.Proofs`, which runtime modules never import, so a proof-only dependency never reaches a browser build (PROC-5, PLAT-3).
 - Every axiom is declared in `Inkproof.Core.Axioms` and nowhere else (PROC-1). The tests fail if a published theorem depends on any other axiom beyond Lean's `propext`, `Classical.choice` and `Quot.sound`.
-- `InkproofTools` holds development tooling, currently the `api-lock` executable. It ships in this package so other Inkproof libraries can run it through their dependency on Core, and `import Inkproof.Core` never reaches it.
+- `InkproofTools` holds development tooling: the `api-lock` executable, the test harness and the `inkproof-test-driver` executable. `import Inkproof.Core` never reaches it, and it does not use Plausible, which would enter every consumer's graph.
 
 ## Generic foundations
 
