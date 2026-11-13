@@ -7,6 +7,7 @@
 - `float_le_linear` is now a theorem proved from Lean's model of `Float`, no longer an axiom.
 - `Float.toRat_eq_value` states what `Float.toRat` computes.
 - `OrdFloat.ofFloat?_eq_none_iff` states that `ofFloat?` rejects exactly NaN.
+- `Series.lowerBoundFrom` is defined through `Series.lowerBoundFromBy`, leaving one binary search.
 
 ## [0.4.0]
 
