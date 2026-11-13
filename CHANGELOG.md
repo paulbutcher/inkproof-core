@@ -2,12 +2,16 @@
 
 ## [Unreleased]
 
+## [0.5.1]
+
+- `Series.lowerBoundFrom` is defined through `Series.lowerBoundFromBy`, leaving one binary search.
+- `InkproofTools.Test` provides the test harness, platform test and Lasm driver as a development library, and Core's tests use it with Plausible.
+
 ## [0.5.0]
 
 - `float_le_linear` is now a theorem proved from Lean's model of `Float`, no longer an axiom.
 - `Float.toRat_eq_value` states what `Float.toRat` computes.
 - `OrdFloat.ofFloat?_eq_none_iff` states that `ofFloat?` rejects exactly NaN.
-- `Series.lowerBoundFrom` is defined through `Series.lowerBoundFromBy`, leaving one binary search.
 
 ## [0.4.0]
 
