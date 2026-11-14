@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [0.6.1]
+
+- The development tooling, api-lock, test driver and axiom check come from inkproof-tools v0.1.0, and Core no longer ships `InkproofTools`.
+
 ## [0.6.0]
 
 - `ratAbs` is replaced by Lean core's `Rat.abs`.
