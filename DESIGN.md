@@ -4,10 +4,10 @@ Inkproof.Core holds sorted series with explicit missing data and gaps, mergeable
 
 ## Packages and modules
 
-- The package `inkproof-core` depends on nothing but Lean, at the toolchain Lasm supports (`lean-toolchain`); it builds natively and under Lasm from the same source.
+- The package `inkproof-core` depends on `inkproof-float`, at a release tag, and otherwise on nothing but Lean, at the toolchain Lasm supports (`lean-toolchain`); it builds natively and under Lasm from the same source.
 - Runtime modules live under `Inkproof.Core`, and `import Inkproof.Core` brings in all of them; this is what a browser build links. They may hold the proofs their own definitions need, which compile to nothing.
 - Published theorems live under `Inkproof.Core.Proofs`, which runtime modules never import, so a proof-only dependency never reaches a browser build (PROC-5, PLAT-3).
-- Every axiom is declared in `Inkproof.Core.Axioms` and nowhere else (PROC-1). The tests fail if a published theorem depends on any other axiom beyond Lean's `propext`, `Classical.choice` and `Quot.sound`.
+- Core declares no axiom of its own (PROC-1); the tests fail if a published theorem depends on any beyond Lean's `propext`, `Classical.choice` and `Quot.sound`.
 - Development tooling (`api-lock`, the test harness and driver, the axiom check) comes from `inkproof-tools`, required only by the `test` subproject, so `import Inkproof.Core` never reaches it or Plausible.
 
 ## Generic foundations
@@ -35,7 +35,7 @@ Inkproof.Core holds sorted series with explicit missing data and gaps, mergeable
 ## Pyramids
 
 - A pyramid over one segment stores level 0 as the measure of each point, and each level above as the product of consecutive groups of `b ≥ 2` nodes from the level below, in order. Point `i` belongs to node `i / b^k` at level `k`.
-- A query takes whole groups from the level above wherever it can; a built pyramid's levels shrink to one node. Index ranges are primary; `Series.lowerBound` turns an x-range into an index range by binary search, which is correct because the series is sorted.
+- A query takes whole groups from the level above wherever it can; a built pyramid's levels shrink to one node. Index ranges are primary; `Series.lowerBound` turns an x-range into an index range by binary search, which is correct because the series is sorted. `lowerBoundFrom` and `lowerBoundFromBy` are written by hand because Lean core's `Array.binSearch` returns an equivalent element rather than the first index at or above `x`, which is what the range needs, and has no lemmas, so using it would mean proving a lower-bound specification over it anyway.
 - PROOF-1: for every monoid and every index or x-range, the query equals the monoid fold over the raw points in that range, in order. Order matters because the monoid need not be commutative.
 - PROOF-2: each point lies in exactly one node per level, and each node equals the product of its children.
 - PROOF-3: `SegmentedPyramid` holds one pyramid per segment. Its query returns one result per segment, `empty` where no point is in range, each equal to the fold over that segment's in-range points alone, so no value combines points from two segments. `queryOverlapping` returns the same results for just the segments with points in range, tagged with their indices; it finds the first and last by binary search over the breaks, so its cost follows the segments in range rather than all of them. Levels are flat arrays so CORE-7 tiles can be fixed ranges of nodes per level.
@@ -48,20 +48,7 @@ Inkproof.Core holds sorted series with explicit missing data and gaps, mergeable
 
 ## Floats
 
-- `OrdFloat` wraps a `Float` with a proof that it is neither NaN nor `-0.0` (FP-2). `OrdFloat.ofFloat?` rejects NaN and turns `-0.0` into `0.0`, so equal values have one representation.
-- `float_le_linear` is a theorem: `Float` is defined over `Float.Model`, an IEEE 754 binary64 model, and `Internal.FloatModel` unpacks its bits into an integer key that orders the non-NaN floats exactly as `≤` does. `OrdFloat`'s order instance rests on it. `Float.toRat_eq_value` shows `Float.toRat` is the value of the model's unpacked float.
-- Absolute values of rationals use Lean core's `Rat.abs`, with its `abs_of_nonneg`, `abs_neg` and related lemmas. Core adds only what it lacks: `rat_abs_le_iff`, `rat_abs_add_le` and `rat_abs_mul`, and, for `Float.Approximates`, `rel` (the `r * (1 + δ)` form) and `error_step` (composing a rounding error with an existing bound). They are stated generally so consumers' error analyses are instances.
-- `Inkproof.Core.Axioms` holds the only axiom the library adds, `float_rounding_model` (FP-3): `≤` agrees with the exact values, integer literals below `2 ^ 53` are exact, and `+ - * /` round to within `2 ^ -53` relative error where the exact result is zero or normal. It is binary64 only. What stays trusted is that Lean's compiled float operations match the model.
-- Tests check the model against compiled code, natively and under Lasm: that `ofFloat?` keeps the value and removes `-0.0` (rejecting exactly NaN is proved), that `float_le_linear` holds of the platform's floats, and that the rounding axiom does.
-
-### Proving `float_rounding_model`
-
-Assessed against Lean v4.35.0 core, which has no theory of its rounding: `Float.Model` states that it is not a basis for a float library and carries no lemmas beyond what the operations need. Nothing outside core was found to help. opencompl/fp-lean models bit-blasted IEEE floats on a nightly toolchain, is unfinished, and would need a proved equivalence with `Float.Model` before use, so it would add work rather than remove it.
-
-- Parts 1 and 2 (order agrees with exact values, literals) follow from `Internal.FloatModel.unpack_cases` and `Float.toRat_eq_value`, plus `UnpackedFloat.ofNat` for literals: about 200 lines, one to two days.
-- Part 3 needs one error lemma about `UnpackedFloat.round` (shifting by `targetExponent` with round and sticky bits, `roundToNearestEven`, the carry that re-shifts, and the bound on `totalExponent`), after which `add`, `sub` and `mul` are exact integer arithmetic followed by `round`. `div` additionally needs its quotient and remainder to give the right `Accuracy`. About 800 to 1500 lines, one to three weeks.
-- Everything is in modules that compile to nothing, so Lasm is unaffected; the proofs stay out of browser builds like the other theorems (PLAT-3). Adding no dependency keeps every consumer's build as it is.
-- Proving it would shrink the trusted base to the compiled-versus-model match alone, which the tests already check. The human decides whether that is worth the weeks; nothing in Scale's use of the axiom is blocked meanwhile.
+The float model (`OrdFloat`, `Float.toRat`, `Float.Approximates`, the rounding axiom and the discussion of proving it) lives in `inkproof-float`. Core uses its `OrdFloat` as an x-type, for example with `Binning.ofBreaks`.
 
 ## Testing
 

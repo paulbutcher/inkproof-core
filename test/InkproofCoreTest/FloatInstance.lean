@@ -3,6 +3,7 @@ Copyright (c) 2026 Paul Butcher. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 -/
 import Inkproof.Core
+import Inkproof.Float
 import Inkproof.Core.Proofs
 
 /-! FP-1 instantiated: `OrdFloat` serves as an x-type and as a value type, and the published theorems
@@ -10,7 +11,7 @@ apply to it with every hypothesis discharged. -/
 
 namespace InkproofCoreTest.FloatInstance
 
-open Inkproof.Core
+open Inkproof.Core Inkproof.Float
 
 example : Std.IsLinearOrder OrdFloat := inferInstance
 example : LawfulAggregate (Minimum OrdFloat × Maximum OrdFloat) := inferInstance

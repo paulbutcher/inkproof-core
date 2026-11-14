@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [0.7.0]
+
+- The float model (`OrdFloat`, `Float.toRat`, `Float.Approximates`, the rounding axiom and the `rat_abs` lemmas) moved to inkproof-float v0.1.0, which Core now depends on; Core declares no axiom.
+
 ## [0.6.1]
 
 - The development tooling, api-lock, test driver and axiom check come from inkproof-tools v0.1.0, and Core no longer ships `InkproofTools`.

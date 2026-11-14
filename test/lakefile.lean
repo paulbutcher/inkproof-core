@@ -13,7 +13,7 @@ package «inkproof-core-test» where
   ]
 
 require «inkproof-core» from ".."
-require «inkproof-tools» from git "https://github.com/paulbutcher/inkproof-tools" @ "v0.1.0"
+require «inkproof-tools» from git "https://github.com/paulbutcher/inkproof-tools" @ "v0.2.1"
 require plausible from git "https://github.com/leanprover-community/plausible" @ "v4.35.0"
 
 -- Compile-time tests: compiling is passing.

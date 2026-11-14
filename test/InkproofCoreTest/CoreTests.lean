@@ -3,6 +3,7 @@ Copyright (c) 2026 Paul Butcher. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 -/
 import Inkproof.Core
+import Inkproof.Float
 import InkproofTools.Test.Harness
 
 /-! Binning, indexed containers and tiled queries on generated data, natively and under Lasm.
@@ -22,9 +23,9 @@ def genFloatArray (g : Rng) : Array Float × Rng :=
 
 def floatBinningMonotone : TestCase := .mk "binning ordered floats by breaks is monotone" <|
   forAll 500 genFloatArray fun raw => do
-    let some breaks := (raw.qsort (· < ·)).mapM OrdFloat.ofFloat? | throw "NaN"
+    let some breaks := (raw.qsort (· < ·)).mapM Inkproof.Float.OrdFloat.ofFloat? | throw "NaN"
     let b := Binning.ofBreaks breaks
-    let probes := (raw.qsort (· < ·)).filterMap OrdFloat.ofFloat?
+    let probes := (raw.qsort (· < ·)).filterMap Inkproof.Float.OrdFloat.ofFloat?
     let cols := probes.map b.col
     check (cols.all (· < b.columns)) "column out of range"
     check ((cols.zip (cols.extract 1 cols.size)).all fun (a, c) => a ≤ c) "not monotone"
