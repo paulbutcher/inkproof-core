@@ -13,6 +13,7 @@ package «inkproof-core-test» where
   ]
 
 require «inkproof-core» from ".."
+require «inkproof-tools» from git "https://github.com/paulbutcher/inkproof-tools" @ "v0.1.0"
 require plausible from git "https://github.com/leanprover-community/plausible" @ "v4.35.0"
 
 -- Compile-time tests: compiling is passing.
@@ -26,23 +27,8 @@ lean_lib InkproofCoreTest where
 lean_exe tests where
   root := `Main
 
-def apiLockMatches (dir : System.FilePath) : IO Bool := do
-  IO.println "== api-lock on a fixture"
-  let out ← IO.Process.output
-    { cmd := "lake", args := #["exe", "api-lock", "InkproofCoreTest.ApiLockFixture"], cwd := dir }
-  if out.exitCode != 0 then
-    IO.eprintln s!"FAILED: api-lock (exit {out.exitCode})\n{out.stderr}"
-    return false
-  let expected ← IO.FS.readFile (dir / "ApiLockFixture.expected")
-  if out.stdout != expected then
-    IO.eprintln s!"FAILED: api-lock output differs from ApiLockFixture.expected:\n{out.stdout}"
-    return false
-  return true
-
 @[test_driver]
 script test do
   let child ← IO.Process.spawn
     { cmd := "lake", args := #["exe", "inkproof-test-driver"], cwd := __dir__ }
-  let code ← child.wait
-  let apiLock ← apiLockMatches __dir__
-  return if code == 0 && apiLock then 0 else 1
+  child.wait

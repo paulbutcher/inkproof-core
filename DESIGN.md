@@ -8,7 +8,7 @@ Inkproof.Core holds sorted series with explicit missing data and gaps, mergeable
 - Runtime modules live under `Inkproof.Core`, and `import Inkproof.Core` brings in all of them; this is what a browser build links. They may hold the proofs their own definitions need, which compile to nothing.
 - Published theorems live under `Inkproof.Core.Proofs`, which runtime modules never import, so a proof-only dependency never reaches a browser build (PROC-5, PLAT-3).
 - Every axiom is declared in `Inkproof.Core.Axioms` and nowhere else (PROC-1). The tests fail if a published theorem depends on any other axiom beyond Lean's `propext`, `Classical.choice` and `Quot.sound`.
-- `InkproofTools` holds development tooling: the `api-lock` executable, the test harness and the `inkproof-test-driver` executable. `import Inkproof.Core` never reaches it, and it does not use Plausible, which would enter every consumer's graph.
+- Development tooling (`api-lock`, the test harness and driver, the axiom check) comes from `inkproof-tools`, required only by the `test` subproject, so `import Inkproof.Core` never reaches it or Plausible.
 
 ## Generic foundations
 
@@ -65,13 +65,12 @@ Assessed against Lean v4.35.0 core, which has no theory of its rounding: `Float.
 
 ## Testing
 
-- Tests live in the `test` subproject (CLAUDE.md's Test layout). `lake test` builds it, runs `Main.lean` natively, checks `api-lock` against a fixture, then compiles and runs the same `Main.lean` with Lasm. A check inside the program confirms that the Lasm run executes as wasm.
+- Tests live in the `test` subproject (CLAUDE.md's Test layout). `lake test` builds it, runs `Main.lean` natively, then compiles and runs the same `Main.lean` with Lasm. A check inside the program confirms that the Lasm run executes as wasm.
 - Lasm is pinned exactly in `test/package.json` and installed with `npm ci` in `test/`. Without it the Lasm step is skipped with a warning; with `INKPROOF_REQUIRE_LASM=1` the skip fails instead.
 - Theorems that only validate the specification, such as VAL-1 instances (an order-only x-type, a non-commutative monoid) and VAL-2 hypothesis discharges, live in the test library, where compiling is passing.
 - Where optimised code is not yet proved equal to its naive reference, a property compares them over VAL-4's edge cases, with the obstacle recorded beside it.
 
 ## API lock
 
-- `scripts/api-lock.sh` prints one line per public declaration of `Inkproof.Core`: kind, full name and type, sorted. Theorem statements are the theorem's type. CI compares the output with `API.lock`, and CODEOWNERS sends changes to the human.
+- `scripts/api-lock.sh` runs inkproof-tools' `api-lock` and prints one line per public declaration of `Inkproof.Core`: kind, full name and type, sorted. Theorem statements are the theorem's type. CI compares the output with `API.lock`, and CODEOWNERS sends changes to the human.
 - Private names, modules with an `Internal` component (which no consumer may import), compiler auxiliaries (matchers, recursors, `noConfusion`, equation lemmas) and other declarations derived from a listed one are left out.
-- Every Inkproof library uses this generator through its dependency on Core, `lake exe api-lock <its root module>` after `lake build`, so its command line and line format are a contract with all of them: changing either changes every library's `API.lock`.

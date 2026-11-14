@@ -16,19 +16,6 @@ package «inkproof-core» where
 lean_lib InkproofCore where
   roots := #[`Inkproof.Core, `Inkproof.Core.Proofs]
 
--- Development tooling, shipped so every Inkproof library can run it from its
--- dependency on this package rather than keeping a copy.
-lean_lib InkproofTools where
-  globs := #[.andSubmodules `InkproofTools]
-
-@[default_target]
-lean_exe «api-lock» where
-  root := `InkproofTools.ApiLockMain
-  supportInterpreter := true
-
-lean_exe «inkproof-test-driver» where
-  root := `InkproofTools.TestDriverMain
-
 @[test_driver]
 script tests do
   let child ← IO.Process.spawn
