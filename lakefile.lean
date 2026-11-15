@@ -12,7 +12,7 @@ package «inkproof-core» where
     ⟨`warningAsError, true⟩
   ]
 
-require «inkproof-float» from git "https://github.com/paulbutcher/inkproof-float" @ "v0.1.0"
+require «inkproof-float» from git "https://github.com/paulbutcher/inkproof-float" @ "v0.5.0"
 
 @[default_target]
 lean_lib InkproofCore where
