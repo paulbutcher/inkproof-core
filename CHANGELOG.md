@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [0.9.0]
+
+- `Aggregate.foldTilesM` folds tiles fetched in a monad, with `foldTilesM_id` showing it agrees with `foldTiles` in `Id`.
+
 ## [0.8.1]
 
 - Depends on inkproof-float v0.5.0.

@@ -12,7 +12,7 @@ namespace Inkproof.Core
 
 universe u
 
-open Aggregate (empty merge foldRange foldTiles)
+open Aggregate (empty merge foldRange foldTiles foldTilesM)
 
 namespace Aggregate
 
@@ -26,6 +26,24 @@ theorem foldRange_extract {a : Array M} {s e lo hi : Nat} (h₁ : s ≤ lo) (h�
   have e₁ : s + (lo - s) = lo := by omega
   have e₂ : min (s + (hi - s)) e = hi := by omega
   rw [e₁, e₂]
+
+omit [LawfulAggregate M] in
+/-- Fetching tile by tile in `Id` gives what `foldTiles` computes from the same tiles. -/
+theorem foldTilesM_id (n : Nat) (hn : 0 < n) (tile : Nat → Array M) (lo hi : Nat) :
+    foldTilesM (m := Id) n hn tile (pure PUnit.unit) lo hi = foldTiles n hn tile lo hi := by
+  rw [foldTilesM, foldTiles]
+  by_cases h : lo < hi
+  · have ih := foldTilesM_id n hn tile (min hi ((lo / n + 1) * n)) hi
+    simp only [h, ite_true, bind_pure_comp] at ih ⊢
+    simp [ih]
+    rfl
+  · simp [h]
+    rfl
+termination_by hi - lo
+decreasing_by
+  have := Nat.lt_mul_div_succ lo hn
+  rw [Nat.mul_comm] at this
+  omega
 
 /-- Reading a level tile by tile merges the same nodes as reading it whole. -/
 theorem foldTiles_eq (n : Nat) (hn : 0 < n) (a : Array M) (tile : Nat → Array M)

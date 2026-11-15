@@ -29,6 +29,25 @@ decreasing_by
   rw [Nat.mul_comm] at this
   omega
 
+/-- `foldTiles` with the tiles fetched in a monad. Only the tiles the range touches are fetched, one at a
+time, and `yield` runs after each so that a long range can hand control back to its host
+(`Aggregate.foldTilesM_id`). -/
+def foldTilesM {m : Type u → Type u} [Monad m] (n : Nat) (hn : 0 < n)
+    (fetch : Nat → m (Array M)) (yield : m PUnit) (lo hi : Nat) : m M :=
+  if lo < hi then do
+    let stop := min hi ((lo / n + 1) * n)
+    let tile ← fetch (lo / n)
+    let here := foldRange tile (lo - lo / n * n) (stop - lo / n * n)
+    yield
+    let rest ← foldTilesM n hn fetch yield stop hi
+    pure (merge here rest)
+  else pure empty
+termination_by hi - lo
+decreasing_by
+  have := Nat.lt_mul_div_succ lo hn
+  rw [Nat.mul_comm] at this
+  omega
+
 end Aggregate
 
 open Aggregate (foldTiles)
