@@ -45,6 +45,32 @@ structure Inkproof.Core.Count : Type
 theorem Inkproof.Core.Count.fold_get : ∀ {γ : Type v} (m : γ → Inkproof.Core.Count) (xs : Array γ), (Inkproof.Core.Aggregate.fold m xs).get = (List.map (fun x => (m x).get) xs.toList).sum
 field Inkproof.Core.Count.get : Inkproof.Core.Count → Nat
 constructor Inkproof.Core.Count.mk : Nat → Inkproof.Core.Count
+theorem Inkproof.Core.Decimal.digitChar_isDigit : ∀ {d : Nat}, d < 10 → d.digitChar.isDigit = Bool.true
+theorem Inkproof.Core.Decimal.digitChar_toNat : ∀ {d : Nat}, d < 10 → d.digitChar.toNat - 48 = d
+def Inkproof.Core.Decimal.digitCount : Nat → Nat
+theorem Inkproof.Core.Decimal.digitCount_spec : ∀ (m : Nat), m < 10 ^ Inkproof.Core.Decimal.digitCount m ∧ (m < 10 ∨ 10 ^ (Inkproof.Core.Decimal.digitCount m - 1) ≤ m)
+def Inkproof.Core.Decimal.digitsValue : List Char → Nat
+theorem Inkproof.Core.Decimal.digitsValue_reverse : ∀ (ds : List Nat), (∀ (d : Nat), d ∈ ds → d < 10) → Inkproof.Core.Decimal.digitsValue (List.map Nat.digitChar ds.reverse) = Inkproof.Core.Decimal.lsValue ds
+def Inkproof.Core.Decimal.formatDecimal : Nat → Int → List Char
+theorem Inkproof.Core.Decimal.formatDecimal_length : ∀ (p : Nat) (n : Int), (Inkproof.Core.Decimal.formatDecimal p n).length = (if n < 0 then 1 else 0) + Max.max (Inkproof.Core.Decimal.digitCount n.natAbs) (p + 1) + if p = 0 then 0 else 1
+theorem Inkproof.Core.Decimal.formatDecimal_spec : ∀ (p : Nat) (n : Int), Inkproof.Core.Decimal.formatDecimal p n = (if n < 0 then ['-'] else []) ++ Inkproof.Core.Decimal.formatNat p n.natAbs
+def Inkproof.Core.Decimal.formatNat : Nat → Nat → List Char
+theorem Inkproof.Core.Decimal.formatNat_spec : ∀ (p m : Nat), ∃ whole frac, (Inkproof.Core.Decimal.formatNat p m = whole ++ if p = 0 then [] else '.' :: frac) ∧ whole ≠ [] ∧ frac.length = p ∧ (∀ (c : Char), c ∈ whole ++ frac → c.isDigit = Bool.true) ∧ Inkproof.Core.Decimal.digitsValue (whole ++ frac) = m
+def Inkproof.Core.Decimal.lsDigits : Nat → Nat → List Nat
+theorem Inkproof.Core.Decimal.lsDigits_length : ∀ (m w : Nat), (Inkproof.Core.Decimal.lsDigits m w).length = w
+theorem Inkproof.Core.Decimal.lsDigits_lt : ∀ (m w d : Nat), d ∈ Inkproof.Core.Decimal.lsDigits m w → d < 10
+def Inkproof.Core.Decimal.lsValue : List Nat → Nat
+theorem Inkproof.Core.Decimal.lsValue_lsDigits : ∀ (m w : Nat), Inkproof.Core.Decimal.lsValue (Inkproof.Core.Decimal.lsDigits m w) = m % 10 ^ w
+theorem Inkproof.Core.Decimal.lsValue_scaledDigits : ∀ (p m : Nat), Inkproof.Core.Decimal.lsValue (Inkproof.Core.Decimal.scaledDigits p m) = m
+theorem Inkproof.Core.Decimal.lt_pow_digitCount : ∀ (m : Nat), m < 10 ^ Inkproof.Core.Decimal.digitCount m
+def Inkproof.Core.Decimal.parseDecimal : List Char → Option (Int × Nat)
+theorem Inkproof.Core.Decimal.parseDecimal_formatDecimal : ∀ (p : Nat) (n : Int), Inkproof.Core.Decimal.parseDecimal (Inkproof.Core.Decimal.formatDecimal p n) = Option.some (n, p)
+def Inkproof.Core.Decimal.scaledDigits : Nat → Nat → List Nat
+theorem Inkproof.Core.Decimal.scaledDigits_length : ∀ (p m : Nat), (Inkproof.Core.Decimal.scaledDigits p m).length = Max.max (Inkproof.Core.Decimal.digitCount m) (p + 1)
+theorem Inkproof.Core.Decimal.scaledDigits_lt : ∀ (p m d : Nat), d ∈ Inkproof.Core.Decimal.scaledDigits p m → d < 10
+def Inkproof.Core.Decimal.splitAtChar : Char → List Char → List Char × Option (List Char)
+theorem Inkproof.Core.Decimal.splitAtChar_none : ∀ (c : Char) (a : List Char), ¬c ∈ a → Inkproof.Core.Decimal.splitAtChar c a = (a, Option.none)
+theorem Inkproof.Core.Decimal.splitAtChar_some : ∀ (c : Char) (a b : List Char), ¬c ∈ a → Inkproof.Core.Decimal.splitAtChar c (a ++ c :: b) = (a, Option.some b)
 structure Inkproof.Core.First : Type u → Type u
 theorem Inkproof.Core.First.fold_get : ∀ {γ : Type v} {α : Type u} (m : γ → Inkproof.Core.First α) (xs : Array γ), (Inkproof.Core.Aggregate.fold m xs).get = List.findSome? (fun x => (m x).get) xs.toList
 field Inkproof.Core.First.get : {α : Type u} → Inkproof.Core.First α → Option α

@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [0.8.0]
+
+- `Inkproof.Core.Decimal` formats a scaled integer as locale-free decimal characters (`formatDecimal`) and parses them back, with proofs of the digits, sign, point and length.
+
 ## [0.7.0]
 
 - The float model (`OrdFloat`, `Float.toRat`, `Float.Approximates`, the rounding axiom and the `rat_abs` lemmas) moved to inkproof-float v0.1.0, which Core now depends on; Core declares no axiom.
