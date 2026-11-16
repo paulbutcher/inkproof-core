@@ -17,7 +17,7 @@ variable {M : Type u} [Aggregate M]
 /-- Merges nodes `lo` to `hi - 1` of a level stored as tiles of `n` nodes, where `tile t` holds
 nodes `t * n` to `t * n + n - 1`, fetching only the tiles the range touches
 (`Aggregate.foldTiles_eq`). -/
-def foldTiles (n : Nat) (hn : 0 < n) (tile : Nat → Array M) (lo hi : Nat) : M :=
+@[specialize] def foldTiles (n : Nat) (hn : 0 < n) (tile : Nat → Array M) (lo hi : Nat) : M :=
   if lo < hi then
     let stop := min hi ((lo / n + 1) * n)
     merge (foldRange (tile (lo / n)) (lo - lo / n * n) (stop - lo / n * n))
@@ -32,7 +32,7 @@ decreasing_by
 /-- `foldTiles` with the tiles fetched in a monad. Only the tiles the range touches are fetched, one at a
 time, and `yield` runs after each so that a long range can hand control back to its host
 (`Aggregate.foldTilesM_id`). -/
-def foldTilesM {m : Type u → Type u} [Monad m] (n : Nat) (hn : 0 < n)
+@[specialize] def foldTilesM {m : Type u → Type u} [Monad m] (n : Nat) (hn : 0 < n)
     (fetch : Nat → m (Array M)) (yield : m PUnit) (lo hi : Nat) : m M :=
   if lo < hi then do
     let stop := min hi ((lo / n + 1) * n)
@@ -68,6 +68,7 @@ def numTiles (p : Pyramid M) (n k : Nat) : Nat :=
 /-- `Pyramid.queryFrom` over levels held as tiles of `n` nodes, where `tile k t` is tile `t` of
 level `k` and `numLevels` is the number of levels. Only the tiles the query's partial groups
 touch are read (`Pyramid.queryTiled_eq`). -/
+@[specialize]
 def queryFromTiled (n : Nat) (hn : 0 < n) (b numLevels : Nat) (tile : Nat → Nat → Array M)
     (k lo hi : Nat) : M :=
   if k < numLevels then
@@ -86,6 +87,7 @@ termination_by numLevels - k
 /-- Merges the measures of points `lo` to `hi - 1` from a pyramid with `branching` and `numLevels`
 whose levels are fetched as tiles, with the same result as `Pyramid.query` on the whole pyramid
 (`Pyramid.queryTiled_eq`). -/
+@[specialize]
 def queryTiled (n : Nat) (hn : 0 < n) (branching numLevels : Nat) (tile : Nat → Nat → Array M)
     (lo hi : Nat) : M :=
   queryFromTiled n hn branching numLevels tile 0 lo hi

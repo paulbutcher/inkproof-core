@@ -15,7 +15,7 @@ namespace Aggregate
 variable {M : Type u} [Aggregate M]
 
 /-- Merges `a[lo]` to `a[hi - 1]` in order. Indices past the end of `a` contribute nothing. -/
-def foldRange (a : Array M) (lo hi : Nat) : M :=
+@[specialize] def foldRange (a : Array M) (lo hi : Nat) : M :=
   a.foldl merge empty lo hi
 
 end Aggregate
@@ -28,7 +28,7 @@ variable {M : Type u} [Aggregate M]
 
 /-- The level above `a`: node `j` merges `a[j * b]` to `a[j * b + b - 1]`, the last node taking
 whatever remains. -/
-def coarsen (b : Nat) (a : Array M) : Array M :=
+@[specialize] def coarsen (b : Nat) (a : Array M) : Array M :=
   (Array.range ((a.size + b - 1) / b)).map fun j => foldRange a (j * b) (j * b + b)
 
 /-- Level `k` of a pyramid over `leaves`: the specification the stored levels meet. -/
@@ -45,7 +45,7 @@ theorem size_coarsen_lt {b : Nat} (hb : 2 ≤ b) {a : Array M} (ha : 2 ≤ a.siz
   omega
 
 /-- `a` and every coarser level, down to one node. -/
-def buildLevels (b : Nat) (hb : 2 ≤ b) (a : Array M) : List (Array M) :=
+@[specialize] def buildLevels (b : Nat) (hb : 2 ≤ b) (a : Array M) : List (Array M) :=
   if ha : 2 ≤ a.size then
     have := size_coarsen_lt hb ha
     a :: buildLevels b hb (coarsen b a)
@@ -102,7 +102,7 @@ theorem buildLevels_getElem (b : Nat) (hb : 2 ≤ b) (a : Array M) (k : Nat)
 
 /-- Builds the pyramid over `leaves`, with nodes merging `branching` children. Levels shrink until
 the top has at most one node (`two_le_size_levels_build`, `size_top_levels_build`). -/
-def build (branching : Nat) (h : 2 ≤ branching) (leaves : Array M) : Pyramid M :=
+@[specialize] def build (branching : Nat) (h : 2 ≤ branching) (leaves : Array M) : Pyramid M :=
   { branching, two_le_branching := h, leaves
     levels := (buildLevels branching h leaves).toArray
     levels_eq := fun k hk => by
@@ -110,12 +110,12 @@ def build (branching : Nat) (h : 2 ≤ branching) (leaves : Array M) : Pyramid M
       exact buildLevels_getElem branching h leaves k (by simpa using hk) }
 
 /-- Builds the pyramid over the measures of `xs`. -/
-def ofMeasure {γ : Type v} (branching : Nat) (h : 2 ≤ branching) (measure : γ → M)
+@[specialize] def ofMeasure {γ : Type v} (branching : Nat) (h : 2 ≤ branching) (measure : γ → M)
     (xs : Array γ) : Pyramid M :=
   build branching h (xs.map measure)
 
 /-- Merges nodes `lo` to `hi - 1` of level `k`, taking whole groups from the level above. -/
-def queryFrom (levels : Array (Array M)) (b k lo hi : Nat) : M :=
+@[specialize] def queryFrom (levels : Array (Array M)) (b k lo hi : Nat) : M :=
   if hk : k < levels.size then
     if k + 1 < levels.size then
       let lo' := (lo + b - 1) / b
@@ -131,7 +131,7 @@ termination_by levels.size - k
 /-- Merges the measures of points `lo` to `hi - 1`, with the same result as merging them one by one
 (`Pyramid.query_eq`). Each level contributes only its nodes before the first and after the last
 whole group in the range; the groups between come from the level above. -/
-def query (p : Pyramid M) (lo hi : Nat) : M :=
+@[specialize] def query (p : Pyramid M) (lo hi : Nat) : M :=
   if p.levels.size = 0 then foldRange p.leaves lo hi
   else queryFrom p.levels p.branching 0 lo hi
 

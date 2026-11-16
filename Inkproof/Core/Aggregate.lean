@@ -26,7 +26,7 @@ namespace Aggregate
 variable {M : Type u} [Aggregate M]
 
 /-- Merges the measures of `xs` in order; see `fold_eq_foldr` and `fold_prod`. -/
-def fold {γ : Type v} (measure : γ → M) (xs : Array γ) : M :=
+@[specialize] def fold {γ : Type v} (measure : γ → M) (xs : Array γ) : M :=
   xs.foldl (fun acc x => merge acc (measure x)) empty
 
 end Aggregate

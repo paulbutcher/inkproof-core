@@ -15,6 +15,7 @@ variable {α : Type u} {β : Type v} [LE α] [DecidableLE α]
 
 /-- Binary search between `lo` and `hi` for the first index below `n` whose x-value, read through
 `get`, is at least `x`. -/
+@[specialize]
 def lowerBoundFromBy (n : Nat) (get : (i : Nat) → i < n → α) (x : α) (lo hi : Nat) : Nat :=
   if lo < hi then
     let mid := (lo + hi) / 2
@@ -25,12 +26,12 @@ def lowerBoundFromBy (n : Nat) (get : (i : Nat) → i < n → α) (x : α) (lo h
 termination_by hi - lo
 
 /-- `lowerBoundFromBy` over an array's x-values. -/
-def lowerBoundFrom (xs : Array α) (x : α) (lo hi : Nat) : Nat :=
+@[specialize] def lowerBoundFrom (xs : Array α) (x : α) (lo hi : Nat) : Nat :=
   lowerBoundFromBy xs.size (fun i h => xs[i]) x lo hi
 
 /-- The index of the first point whose x-value is at least `x`, or `size` if there is none. The
 points before it are exactly those below `x` (`Series.lt_lowerBound_iff`). -/
-def lowerBound (s : Series α β) (x : α) : Nat := lowerBoundFrom s.xs x 0 s.size
+@[specialize] def lowerBound (s : Series α β) (x : α) : Nat := lowerBoundFrom s.xs x 0 s.size
 
 /-- Whether a point's x-value lies in `[x₀, x₁)`. -/
 def inRange (x₀ x₁ : α) (p : α × Option β) : Bool := decide (x₀ ≤ p.1) && !decide (x₁ ≤ p.1)
@@ -64,7 +65,7 @@ def build (g : Segmented α β) (measure : α × Option β → M) (branching : N
 
 /-- One result per segment: the merge of the measures of that segment's points with x-values in
 `[x₀, x₁)`, never of points from two segments (`SegmentedPyramid.getElem_query`). -/
-def query [DecidableLE α] (sp : SegmentedPyramid α β M) (x₀ x₁ : α) : Array M :=
+@[specialize] def query [DecidableLE α] (sp : SegmentedPyramid α β M) (x₀ x₁ : α) : Array M :=
   sp.pyramids.mapIdx fun k p =>
     let s := sp.segmented.segment k
     p.query (s.lowerBound x₀) (s.lowerBound x₁)
@@ -72,7 +73,7 @@ def query [DecidableLE α] (sp : SegmentedPyramid α β M) (x₀ x₁ : α) : Ar
 /-- The results of `query` for just the segments with points in `[x₀, x₁)`, each paired with its
 segment index, in segment order (`SegmentedPyramid.queryOverlapping_eq`). Its cost grows with the
 number of those segments, not with `numSegments`. -/
-def queryOverlapping [DecidableLE α] (sp : SegmentedPyramid α β M) (x₀ x₁ : α) :
+@[specialize] def queryOverlapping [DecidableLE α] (sp : SegmentedPyramid α β M) (x₀ x₁ : α) :
     Array (Nat × M) :=
   let g := sp.segmented
   let lo := g.series.lowerBound x₀

@@ -32,3 +32,7 @@ script test do
   let child ← IO.Process.spawn
     { cmd := "lake", args := #["exe", "inkproof-test-driver"], cwd := __dir__ }
   child.wait
+
+-- Not a test: `lake exe bench` times the hot aggregation paths.
+lean_exe bench where
+  root := `Bench
