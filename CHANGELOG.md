@@ -1,6 +1,8 @@
 # Changelog
 
-## [Unreleased]
+## [0.9.1]
+
+- Hot generic aggregation, pyramid, query and tiling code is specialised per instance.
 
 ## [0.9.0]
 
