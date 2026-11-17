@@ -131,6 +131,33 @@ theorem queryTiled_build (b : Nat) (h : 2 ≤ b) (a : Array M) (n : Nat) (hn : 0
   rw [query_eq] at this
   exact this
 
+omit [LawfulAggregate M] in
+/-- Fetching tile by tile in `Id` gives what `queryFromTiled` computes from the same tiles. -/
+theorem queryFromTiledM_id (n : Nat) (hn : 0 < n) (b numLevels : Nat) (tile : Nat → Nat → Array M)
+    (k lo hi : Nat) :
+    queryFromTiledM (m := Id) n hn b numLevels tile (pure PUnit.unit) k lo hi =
+      queryFromTiled n hn b numLevels tile k lo hi := by
+  rw [queryFromTiledM, queryFromTiled]
+  by_cases hk : k < numLevels
+  · by_cases hk1 : k + 1 < numLevels
+    · by_cases hlt : (lo + b - 1) / b < hi / b
+      · have ih := queryFromTiledM_id n hn b numLevels tile (k + 1) ((lo + b - 1) / b) (hi / b)
+        simp only [hk, hk1, hlt, ite_true, Aggregate.foldTilesM_id]
+        rw [← ih]
+        rfl
+      · simp only [hk, hk1, hlt, ite_true, ite_false, Aggregate.foldTilesM_id]
+    · simp only [hk, hk1, ite_true, ite_false, Aggregate.foldTilesM_id]
+  · simp only [hk, ite_false]
+    rfl
+termination_by numLevels - k
+
+omit [LawfulAggregate M] in
+theorem queryTiledM_id (n : Nat) (hn : 0 < n) (b numLevels : Nat) (tile : Nat → Nat → Array M)
+    (lo hi : Nat) :
+    queryTiledM (m := Id) n hn b numLevels tile (pure PUnit.unit) lo hi =
+      queryTiled n hn b numLevels tile lo hi :=
+  queryFromTiledM_id n hn b numLevels tile 0 lo hi
+
 end Pyramid
 
 end Inkproof.Core

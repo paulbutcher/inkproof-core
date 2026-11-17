@@ -50,7 +50,7 @@ decreasing_by
 
 end Aggregate
 
-open Aggregate (foldTiles)
+open Aggregate (foldTiles foldTilesM)
 
 namespace Pyramid
 
@@ -91,6 +91,32 @@ whose levels are fetched as tiles, with the same result as `Pyramid.query` on th
 def queryTiled (n : Nat) (hn : 0 < n) (branching numLevels : Nat) (tile : Nat → Nat → Array M)
     (lo hi : Nat) : M :=
   queryFromTiled n hn branching numLevels tile 0 lo hi
+
+/-- `Pyramid.queryFromTiled` with the tiles fetched in a monad, where `fetch k t` is tile `t` of level
+`k`. Only the tiles the query touches are fetched, and `yield` runs after each
+(`Pyramid.queryFromTiledM_id`). -/
+@[specialize]
+def queryFromTiledM {m : Type u → Type u} [Monad m] (n : Nat) (hn : 0 < n) (b numLevels : Nat)
+    (fetch : Nat → Nat → m (Array M)) (yield : m PUnit) (k lo hi : Nat) : m M :=
+  if k < numLevels then
+    if k + 1 < numLevels then
+      let lo' := (lo + b - 1) / b
+      let hi' := hi / b
+      if lo' < hi' then do
+        let left ← foldTilesM n hn (fetch k) yield lo (lo' * b)
+        let mid ← queryFromTiledM n hn b numLevels fetch yield (k + 1) lo' hi'
+        let right ← foldTilesM n hn (fetch k) yield (hi' * b) hi
+        pure (merge left (merge mid right))
+      else foldTilesM n hn (fetch k) yield lo hi
+    else foldTilesM n hn (fetch k) yield lo hi
+  else pure empty
+termination_by numLevels - k
+
+/-- `Pyramid.queryTiled` with the tiles fetched in a monad (`Pyramid.queryTiledM_id`). -/
+@[specialize]
+def queryTiledM {m : Type u → Type u} [Monad m] (n : Nat) (hn : 0 < n) (branching numLevels : Nat)
+    (fetch : Nat → Nat → m (Array M)) (yield : m PUnit) (lo hi : Nat) : m M :=
+  queryFromTiledM n hn branching numLevels fetch yield 0 lo hi
 
 end Pyramid
 

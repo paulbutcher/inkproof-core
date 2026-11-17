@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.10.0]
+
+- `Pyramid.queryTiledM` and `Pyramid.queryFromTiledM` query a pyramid whose tiles are fetched in a monad, with `queryTiledM_id` and `queryFromTiledM_id` showing they agree with the pure versions in `Id`.
+
 ## [0.9.1]
 
 - Hot generic aggregation, pyramid, query and tiling code is specialised per instance.
