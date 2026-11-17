@@ -118,6 +118,57 @@ def queryTiledM {m : Type u → Type u} [Monad m] (n : Nat) (hn : 0 < n) (branch
     (fetch : Nat → Nat → m (Array M)) (yield : m PUnit) (lo hi : Nat) : m M :=
   queryFromTiledM n hn branching numLevels fetch yield 0 lo hi
 
+/-- Boundary `c` when the range `lo` to `hi` is cut into `cols` columns of equal length, rounding down.
+Consecutive boundaries are the ends of a column, so the columns partition the range
+(`Pyramid.exists_unique_columnBound`). -/
+def columnBound (lo hi cols c : Nat) : Nat := lo + (hi - lo) * c / cols
+
+/-- The merge of each of `cols` columns, column `c` being nodes `columnBound lo hi cols c` to
+`columnBound lo hi cols (c + 1) - 1` of level `k` (`Pyramid.getElem_columnsFrom`). With `k = 0` these
+are leaves, the exact columns of `Pyramid.columns`; with a higher `k` the boundaries are nodes of level
+`k`, so each column covers whole nodes of that level, the columns partition them, and no level below
+`k` is read. -/
+@[specialize]
+def columnsFrom (n : Nat) (hn : 0 < n) (b numLevels : Nat) (tile : Nat → Nat → Array M)
+    (k lo hi cols : Nat) : Array M :=
+  Array.ofFn (n := cols) fun c =>
+    queryFromTiled n hn b numLevels tile k (columnBound lo hi cols c) (columnBound lo hi cols (c + 1))
+
+/-- The merge of each of `cols` equal columns of leaves `lo` to `hi - 1`, column `c` being
+`Pyramid.queryTiled` over `columnBound lo hi cols c` to `columnBound lo hi cols (c + 1)`
+(`Pyramid.getElem_columns`). Column ends fall anywhere, so at full zoom-out each column reads the
+finest level's tile at both ends, up to `2 * cols` of them; use `Pyramid.columnsFrom` with a higher
+level to read none. -/
+@[specialize]
+def columns (n : Nat) (hn : 0 < n) (b numLevels : Nat) (tile : Nat → Nat → Array M)
+    (lo hi cols : Nat) : Array M :=
+  columnsFrom n hn b numLevels tile 0 lo hi cols
+
+/-- `Pyramid.columnsFrom` with the tiles fetched in a monad. Each tile is fetched at most once, because
+a level's nodes are read in increasing order across columns, so only the latest tile of each level is
+kept; `yield` runs after each fetch (`Pyramid.columnsFromM_id`). -/
+@[specialize]
+def columnsFromM {m : Type u → Type u} [Monad m] (n : Nat) (hn : 0 < n) (b numLevels : Nat)
+    (fetch : Nat → Nat → m (Array M)) (yield : m PUnit) (k lo hi cols : Nat) : m (Array M) :=
+  let cached (k t : Nat) : StateT (Array (Option (Nat × Array M))) m (Array M) := do
+    let hit := match (← get)[k]? with
+      | some (some (t', a)) => if t' = t then some a else none
+      | _ => none
+    match hit with
+    | some a => pure a
+    | none => do
+      let a ← fetch k t
+      modify (·.setIfInBounds k (some (t, a)))
+      pure a
+  (Array.ofFnM (n := cols) (fun c => queryFromTiledM n hn b numLevels cached (liftM yield) k
+    (columnBound lo hi cols c) (columnBound lo hi cols (c + 1)))).run' (Array.replicate numLevels none)
+
+/-- `Pyramid.columns` with the tiles fetched in a monad (`Pyramid.columnsM_id`). -/
+@[specialize]
+def columnsM {m : Type u → Type u} [Monad m] (n : Nat) (hn : 0 < n) (b numLevels : Nat)
+    (fetch : Nat → Nat → m (Array M)) (yield : m PUnit) (lo hi cols : Nat) : m (Array M) :=
+  columnsFromM n hn b numLevels fetch yield 0 lo hi cols
+
 end Pyramid
 
 end Inkproof.Core

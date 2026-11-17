@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.11.0]
+
+- `Pyramid.columnsM` and `Pyramid.columns` aggregate equal columns of a range over a tiled pyramid, fetching each tile once, and `Pyramid.columnsFromM` and `Pyramid.columnsFrom` snap the columns to the nodes of one level.
+
 ## [0.10.1]
 
 - Lasm tests run under `@lasm/cli` 0.8.0.

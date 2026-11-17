@@ -60,6 +60,33 @@ def indexedAndTiled : TestCase := .mk "byte buffers and tiled reads query as the
     check (sameAsNaive (Pyramid.queryTiled tile (Nat.succ_pos _) b q.levels.size (q.tile tile) lo hi)
       ref lo hi) "tiled query differs"
 
+def tiledColumns : TestCase := .mk "tiled columns fetch each tile once and match the naive columns" <|
+  forAll 600 genQuery fun (bytes, b₀, tile₀, lo, hi) => do
+    let b := b₀ + 2
+    let tile := tile₀ + 1
+    let cols := (lo + hi) % 7
+    let ref := bytes.map UInt8.toNat
+    let q := Pyramid.ofIndexed b (Nat.le_add_left 2 b₀) (fun (v : UInt8) => probe v.toNat) bytes
+    let fetch (k t : Nat) : StateM (Array (Nat × Nat)) (Array Probe) := do
+      modify (·.push (k, t))
+      pure (q.tile tile k t)
+    let (got, fetched) := (Pyramid.columnsM tile (Nat.succ_pos _) b q.levels.size fetch (pure ())
+      lo hi cols).run #[]
+    check (got.size == cols) "wrong number of columns"
+    for (col, c) in got.zipIdx do
+      let a := Pyramid.columnBound lo hi cols c
+      let e := Pyramid.columnBound lo hi cols (c + 1)
+      check (sameAsNaive col ref a e) s!"column {c} differs"
+    check (fetched.all fun f => (fetched.filter (· == f)).size == 1) "a tile was fetched twice"
+    let k := b₀ % q.levels.size
+    let (snapped, _) := (Pyramid.columnsFromM tile (Nat.succ_pos _) b q.levels.size fetch (pure ()) k
+      lo hi cols).run #[]
+    let w := b ^ k
+    for (col, c) in snapped.zipIdx do
+      let a := Pyramid.columnBound lo hi cols c * w
+      let e := Pyramid.columnBound lo hi cols (c + 1) * w
+      check (sameAsNaive col ref a e) s!"snapped column {c} differs"
+
 def floatBuffer : TestCase := .mk "float buffers search as the plain array does" <|
   forAll 500 genFloatArray fun raw => do
     let sorted := raw.qsort (· < ·)
@@ -69,6 +96,6 @@ def floatBuffer : TestCase := .mk "float buffers search as the plain array does"
         s!"lower bound of {x} differs"
 
 def tests : List TestCase :=
-  [floatBinningMonotone, indexedAndTiled, floatBuffer]
+  [floatBinningMonotone, indexedAndTiled, tiledColumns, floatBuffer]
 
 end InkproofCoreTest.CoreTests
