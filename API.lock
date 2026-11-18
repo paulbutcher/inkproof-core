@@ -67,12 +67,19 @@ theorem Inkproof.Core.Decimal.lsValue_scaledDigits : ∀ (p m : Nat), Inkproof.C
 theorem Inkproof.Core.Decimal.lt_pow_digitCount : ∀ (m : Nat), m < 10 ^ Inkproof.Core.Decimal.digitCount m
 def Inkproof.Core.Decimal.parseDecimal : List Char → Option (Int × Nat)
 theorem Inkproof.Core.Decimal.parseDecimal_formatDecimal : ∀ (p : Nat) (n : Int), Inkproof.Core.Decimal.parseDecimal (Inkproof.Core.Decimal.formatDecimal p n) = Option.some (n, p)
+def Inkproof.Core.Decimal.roundScaled : Nat → Rat → Int
+theorem Inkproof.Core.Decimal.roundScaled_close : ∀ (p : Nat) (q : Rat), ↑(Inkproof.Core.Decimal.roundScaled p q) - 1 / 2 ≤ q * ↑(10 ^ p) ∧ q * ↑(10 ^ p) < ↑(Inkproof.Core.Decimal.roundScaled p q) + 1 / 2
 def Inkproof.Core.Decimal.scaledDigits : Nat → Nat → List Nat
 theorem Inkproof.Core.Decimal.scaledDigits_length : ∀ (p m : Nat), (Inkproof.Core.Decimal.scaledDigits p m).length = Max.max (Inkproof.Core.Decimal.digitCount m) (p + 1)
 theorem Inkproof.Core.Decimal.scaledDigits_lt : ∀ (p m d : Nat), d ∈ Inkproof.Core.Decimal.scaledDigits p m → d < 10
 def Inkproof.Core.Decimal.splitAtChar : Char → List Char → List Char × Option (List Char)
 theorem Inkproof.Core.Decimal.splitAtChar_none : ∀ (c : Char) (a : List Char), ¬c ∈ a → Inkproof.Core.Decimal.splitAtChar c a = (a, Option.none)
 theorem Inkproof.Core.Decimal.splitAtChar_some : ∀ (c : Char) (a b : List Char), ¬c ∈ a → Inkproof.Core.Decimal.splitAtChar c (a ++ c :: b) = (a, Option.some b)
+def Inkproof.Core.Decimal.trimFrac : List Char → List Char
+theorem Inkproof.Core.Decimal.trimFrac_prefix : ∀ (f : List Char), ∃ z, f = Inkproof.Core.Decimal.trimFrac f ++ z ∧ ∀ (c : Char), c ∈ z → c = '0'
+def Inkproof.Core.Decimal.trimZeros : List Char → List Char
+theorem Inkproof.Core.Decimal.trimZeros_of_not_mem : ∀ (cs : List Char), ¬'.' ∈ cs → Inkproof.Core.Decimal.trimZeros cs = cs
+theorem Inkproof.Core.Decimal.trimZeros_spec : ∀ (w f : List Char), ¬'.' ∈ w → Inkproof.Core.Decimal.trimZeros (w ++ '.' :: f) = if (Inkproof.Core.Decimal.trimFrac f).isEmpty = Bool.true then w else w ++ '.' :: Inkproof.Core.Decimal.trimFrac f
 structure Inkproof.Core.First : Type u → Type u
 theorem Inkproof.Core.First.fold_get : ∀ {γ : Type v} {α : Type u} (m : γ → Inkproof.Core.First α) (xs : Array γ), (Inkproof.Core.Aggregate.fold m xs).get = List.findSome? (fun x => (m x).get) xs.toList
 field Inkproof.Core.First.get : {α : Type u} → Inkproof.Core.First α → Option α

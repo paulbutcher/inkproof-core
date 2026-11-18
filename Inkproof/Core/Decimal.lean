@@ -57,4 +57,18 @@ def parseDecimal (cs : List Char) : Option (Int × Nat) :=
     some (if neg then -v else v, frac.length)
   else none
 
+/-- Drops the trailing zeros of a fractional part. -/
+def trimFrac (f : List Char) : List Char := (f.reverse.dropWhile (· = '0')).reverse
+
+/-- Removes trailing zeros after the point, and the point itself if no fractional digits remain; text without a point is unchanged. -/
+def trimZeros (cs : List Char) : List Char :=
+  match splitAtChar '.' cs with
+  | (_, none) => cs
+  | (w, some f) =>
+    let t := trimFrac f
+    if t.isEmpty then w else w ++ '.' :: t
+
+/-- `q` scaled by `10 ^ p` and rounded to the nearest integer, halves upwards, so that `formatDecimal p (roundScaled p q)` writes `q` to `p` decimals. -/
+def roundScaled (p : Nat) (q : Rat) : Int := (q * (10 ^ p : Nat) + 1 / 2).floor
+
 end Inkproof.Core.Decimal

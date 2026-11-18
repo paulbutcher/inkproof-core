@@ -3,6 +3,7 @@
 ## [0.11.0]
 
 - `Pyramid.columnsM` and `Pyramid.columns` aggregate equal columns of a range over a tiled pyramid, fetching each tile once, and `Pyramid.columnsFromM` and `Pyramid.columnsFrom` snap the columns to the nodes of one level.
+- `Decimal.trimZeros` drops trailing zeros from a decimal, and `Decimal.roundScaled` rounds a rational to a number of decimals.
 
 ## [0.10.1]
 

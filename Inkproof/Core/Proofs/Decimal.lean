@@ -187,4 +187,31 @@ theorem parseDecimal_formatDecimal (p : Nat) (n : Int) :
     rw [← List.cons_append, ← hcr]
     exact hres false (by simp) (fun _ => by omega)
 
+theorem trimZeros_of_not_mem (cs : List Char) (h : '.' ∉ cs) : trimZeros cs = cs := by
+  simp [trimZeros, splitAtChar_none '.' cs h]
+
+theorem trimZeros_spec (w f : List Char) (h : '.' ∉ w) :
+    trimZeros (w ++ '.' :: f) =
+      if (trimFrac f).isEmpty then w else w ++ '.' :: trimFrac f := by
+  simp [trimZeros, splitAtChar_some '.' w f h]
+
+theorem trimFrac_prefix (f : List Char) : ∃ z, f = trimFrac f ++ z ∧ ∀ c ∈ z, c = '0' := by
+  refine ⟨(f.reverse.takeWhile (· = '0')).reverse, ?_, ?_⟩
+  · have := List.takeWhile_append_dropWhile (p := (· = '0')) (l := f.reverse)
+    have h := congrArg List.reverse this
+    simp only [List.reverse_append, List.reverse_reverse] at h
+    exact h.symm
+  · intro c hc
+    have := List.all_eq_true.1 List.all_takeWhile c (List.mem_reverse.1 hc)
+    simpa using this
+
+theorem roundScaled_close (p : Nat) (q : Rat) :
+    (roundScaled p q : Rat) - 1 / 2 ≤ q * (10 ^ p : Nat) ∧
+      q * (10 ^ p : Nat) < (roundScaled p q : Rat) + 1 / 2 := by
+  have h1 := Rat.floor_le (q * (10 ^ p : Nat) + 1 / 2)
+  have h2 := Rat.lt_floor_add_one (q * (10 ^ p : Nat) + 1 / 2)
+  unfold roundScaled
+  rw [Rat.intCast_add] at h2
+  constructor <;> grind
+
 end Inkproof.Core.Decimal

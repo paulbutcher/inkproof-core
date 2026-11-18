@@ -17,6 +17,8 @@ Sorted series with explicit missing data and gaps, mergeable aggregates, and agg
 - Do the same with column boundaries snapped to the nodes of one level, so the columns partition the nodes and no finer tile is read: `Pyramid.columnsFromM`, `Pyramid.columnsFrom`.
 - Query a segmented series, including the segments an x range overlaps: `SegmentedPyramid.build`, `SegmentedPyramid.query`, `SegmentedPyramid.queryOverlapping`.
 - Store decimal numbers as scaled integers, and parse and print them: `Fixed`, `Decimal.parseDecimal`, `Decimal.formatDecimal`, `Decimal.formatNat`.
+- Write a decimal without trailing zeros, or round a rational to a number of decimals: `Decimal.trimZeros`, `Decimal.roundScaled`.
+- Find out what went wrong building a series or segmented series: `SeriesError`, returned by `Series.ofArrays?` and `Series.ofPoints?`, and `SegmentError`, returned by `Segmented.ofBreaks?`.
 
 ## Supported versions
 
