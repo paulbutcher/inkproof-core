@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.13.0]
+
+- `Calendar.civilFromDays` and `Calendar.daysFromCivil` convert between days since 1970-01-01 and a proleptic Gregorian date, proved mutually inverse and valid.
+
 ## [0.12.0]
 
 - `Decimal.trimZeros` drops trailing zeros from a decimal, and `Decimal.roundScaled` rounds a rational to a number of decimals.

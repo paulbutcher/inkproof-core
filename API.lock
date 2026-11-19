@@ -43,6 +43,24 @@ theorem Inkproof.Core.Binning.ofNat_col_of_ge : ∀ (x₀ x₁ w : Nat) (hw : 0 
 theorem Inkproof.Core.Binning.ofNat_col_of_le : ∀ (x₀ x₁ w : Nat) (hw : 0 < w) {x : Nat}, x ≤ x₀ → (Inkproof.Core.Binning.ofNat x₀ x₁ w hw).col x = 0
 theorem Inkproof.Core.Binning.ofNat_col_of_lt : ∀ (x₀ x₁ w : Nat) (hw : 0 < w) {x : Nat}, x₀ ≤ x → x < x₁ → (Inkproof.Core.Binning.ofNat x₀ x₁ w hw).col x = (x - x₀) * w / (x₁ - x₀)
 theorem Inkproof.Core.Binning.ofNat_columns : ∀ (x₀ x₁ w : Nat) (hw : 0 < w), (Inkproof.Core.Binning.ofNat x₀ x₁ w hw).columns = w
+def Inkproof.Core.Calendar.civilFromDays : Int → Int × Nat × Nat
+theorem Inkproof.Core.Calendar.civilFromDays_daysFromCivil : ∀ (y : Int) (m d : Nat), 1 ≤ m → m ≤ 12 → 1 ≤ d → d ≤ Inkproof.Core.Calendar.daysInMonth y m → Inkproof.Core.Calendar.civilFromDays (Inkproof.Core.Calendar.daysFromCivil y m d) = (y, m, d)
+theorem Inkproof.Core.Calendar.civilFromDays_succ : ∀ (z : Int), Inkproof.Core.Calendar.civilFromDays (z + 1) = Inkproof.Core.Calendar.nextDay (Inkproof.Core.Calendar.civilFromDays z)
+theorem Inkproof.Core.Calendar.civilFromDays_valid : ∀ (z : Int), 1 ≤ (Inkproof.Core.Calendar.civilFromDays z).snd.fst ∧ (Inkproof.Core.Calendar.civilFromDays z).snd.fst ≤ 12 ∧ 1 ≤ (Inkproof.Core.Calendar.civilFromDays z).snd.snd ∧ (Inkproof.Core.Calendar.civilFromDays z).snd.snd ≤ Inkproof.Core.Calendar.daysInMonth (Inkproof.Core.Calendar.civilFromDays z).fst (Inkproof.Core.Calendar.civilFromDays z).snd.fst
+theorem Inkproof.Core.Calendar.civilFromDays_zero : Inkproof.Core.Calendar.civilFromDays 0 = (1970, 1, 1)
+def Inkproof.Core.Calendar.daysFromCivil : Int → Nat → Nat → Int
+theorem Inkproof.Core.Calendar.daysFromCivil_civilFromDays : ∀ (z : Int), Inkproof.Core.Calendar.daysFromCivil (Inkproof.Core.Calendar.civilFromDays z).fst (Inkproof.Core.Calendar.civilFromDays z).snd.fst (Inkproof.Core.Calendar.civilFromDays z).snd.snd = z
+theorem Inkproof.Core.Calendar.daysFromCivil_epoch : Inkproof.Core.Calendar.daysFromCivil 1970 1 1 = 0
+theorem Inkproof.Core.Calendar.daysFromCivil_nextDay : ∀ (y : Int) (m d : Nat), 1 ≤ m → m ≤ 12 → 1 ≤ d → d ≤ Inkproof.Core.Calendar.daysInMonth y m → Inkproof.Core.Calendar.daysFromCivil (Inkproof.Core.Calendar.nextDay (y, m, d)).fst (Inkproof.Core.Calendar.nextDay (y, m, d)).snd.fst (Inkproof.Core.Calendar.nextDay (y, m, d)).snd.snd = Inkproof.Core.Calendar.daysFromCivil y m d + 1
+def Inkproof.Core.Calendar.daysInMonth : Int → Nat → Nat
+theorem Inkproof.Core.Calendar.daysInMonth_bounds : ∀ (y : Int) (m : Nat), 28 ≤ Inkproof.Core.Calendar.daysInMonth y m ∧ Inkproof.Core.Calendar.daysInMonth y m ≤ 31
+theorem Inkproof.Core.Calendar.daysInMonth_february : ∀ (y : Int), Inkproof.Core.Calendar.daysInMonth y 2 = if Inkproof.Core.Calendar.isLeap y = Bool.true then 29 else 28
+theorem Inkproof.Core.Calendar.daysInMonth_thirty : ∀ (y : Int) (m : Nat), m = 4 ∨ m = 6 ∨ m = 9 ∨ m = 11 → Inkproof.Core.Calendar.daysInMonth y m = 30
+theorem Inkproof.Core.Calendar.daysInMonth_thirty_one : ∀ (y : Int) (m : Nat), m = 1 ∨ m = 3 ∨ m = 5 ∨ m = 7 ∨ m = 8 ∨ m = 10 ∨ m = 12 → Inkproof.Core.Calendar.daysInMonth y m = 31
+def Inkproof.Core.Calendar.isLeap : Int → Bool
+theorem Inkproof.Core.Calendar.isLeap_iff : ∀ (y : Int), Inkproof.Core.Calendar.isLeap y = Bool.true ↔ y % 4 = 0 ∧ (y % 100 ≠ 0 ∨ y % 400 = 0)
+def Inkproof.Core.Calendar.nextDay : Int × Nat × Nat → Int × Nat × Nat
+theorem Inkproof.Core.Calendar.nextDay_valid : ∀ (y : Int) (m d : Nat), 1 ≤ m → m ≤ 12 → 1 ≤ (Inkproof.Core.Calendar.nextDay (y, m, d)).snd.fst ∧ (Inkproof.Core.Calendar.nextDay (y, m, d)).snd.fst ≤ 12 ∧ 1 ≤ (Inkproof.Core.Calendar.nextDay (y, m, d)).snd.snd ∧ (Inkproof.Core.Calendar.nextDay (y, m, d)).snd.snd ≤ Inkproof.Core.Calendar.daysInMonth (Inkproof.Core.Calendar.nextDay (y, m, d)).fst (Inkproof.Core.Calendar.nextDay (y, m, d)).snd.fst
 structure Inkproof.Core.Count : Type
 theorem Inkproof.Core.Count.fold_get : ∀ {γ : Type v} (m : γ → Inkproof.Core.Count) (xs : Array γ), (Inkproof.Core.Aggregate.fold m xs).get = (List.map (fun x => (m x).get) xs.toList).sum
 field Inkproof.Core.Count.get : Inkproof.Core.Count → Nat

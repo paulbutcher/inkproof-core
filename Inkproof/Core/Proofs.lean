@@ -11,3 +11,4 @@ import Inkproof.Core.Proofs.Indexed
 import Inkproof.Core.Proofs.Binning
 import Inkproof.Core.Proofs.Tile
 import Inkproof.Core.Proofs.Decimal
+import Inkproof.Core.Proofs.Calendar

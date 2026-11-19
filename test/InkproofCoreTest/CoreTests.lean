@@ -95,7 +95,25 @@ def floatBuffer : TestCase := .mk "float buffers search as the plain array does"
       check (Series.lowerBoundIndexed buf x == (sorted.filter (· < x)).size)
         s!"lower bound of {x} differs"
 
+def calendarKnownDates : TestCase := .mk "calendar leap days and century boundaries" <| do
+  let cases : List (Int × Nat × Nat × Int) :=
+    [(1970, 1, 1, 0), (1969, 12, 31, -1), (2000, 2, 29, 11016), (2000, 3, 1, 11017),
+     (1900, 2, 28, -25509), (1900, 3, 1, -25508), (2100, 2, 28, 47540), (2100, 3, 1, 47541),
+     (2024, 2, 29, 19782)]
+  for (y, m, d, z) in cases do
+    check (Calendar.daysFromCivil y m d == z) s!"daysFromCivil {y}-{m}-{d}"
+    check (Calendar.civilFromDays z == (y, m, d)) s!"civilFromDays {z}"
+
+def calendarRoundTrip : TestCase := .mk "calendar days are consecutive dates" <| do
+  for i in [1:1600000:31] do
+    let z : Int := (i : Int) - 800000
+    let c := Calendar.civilFromDays z
+    check (Calendar.daysFromCivil c.1 c.2.1 c.2.2 == z) s!"round trip {z}"
+    let n := Calendar.civilFromDays (z - 1)
+    check (Calendar.nextDay n == c) s!"successor of day {z - 1}"
+
 def tests : List TestCase :=
-  [floatBinningMonotone, indexedAndTiled, tiledColumns, floatBuffer]
+  [floatBinningMonotone, indexedAndTiled, tiledColumns, floatBuffer, calendarKnownDates,
+   calendarRoundTrip]
 
 end InkproofCoreTest.CoreTests
