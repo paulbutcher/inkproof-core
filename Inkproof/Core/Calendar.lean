@@ -3,6 +3,8 @@ Copyright (c) 2026 Paul Butcher. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 -/
 
+import Inkproof.Core.Decimal
+
 namespace Inkproof.Core.Calendar
 
 /-- Whether `y` is a leap year of the proleptic Gregorian calendar. -/
@@ -43,5 +45,17 @@ def daysFromCivil (y : Int) (m d : Nat) : Int :=
   let yoe := y % 400
   let doy := (153 * (if m > 2 then (m : Int) - 3 else (m : Int) + 9) + 2) / 5 + d - 1
   era * 146097 + (yoe * 365 + yoe / 4 - yoe / 100 + doy) - 719468
+
+/-- The decimal characters of `n`, preceded by zeros to at least `w` characters. -/
+def zeroPad (w n : Nat) : List Char :=
+  Decimal.formatNat 0 n |>.length |> fun l => List.replicate (w - l) '0' ++ Decimal.formatNat 0 n
+
+/-- The characters `YYYY-MM-DD` of the date `(y, m, d)`: the year padded to four digits, with a leading `'-'` when negative, and month and day padded to two. -/
+def isoChars : Int × Nat × Nat → List Char
+  | (y, m, d) =>
+    (if y < 0 then ['-'] else []) ++ zeroPad 4 y.natAbs ++ '-' :: zeroPad 2 m ++ '-' :: zeroPad 2 d
+
+/-- The date `z` days after 1970-01-01 as `YYYY-MM-DD`. -/
+def isoDate (z : Int) : String := String.ofList (isoChars (civilFromDays z))
 
 end Inkproof.Core.Calendar

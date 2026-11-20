@@ -20,6 +20,7 @@ Sorted series with explicit missing data and gaps, mergeable aggregates, and agg
 - Store decimal numbers as scaled integers, and parse and print them: `Fixed`, `Decimal.parseDecimal`, `Decimal.formatDecimal`, `Decimal.formatNat`.
 - Write a decimal without trailing zeros, or round a rational to a number of decimals: `Decimal.trimZeros`, `Decimal.roundScaled`.
 - Convert between days since 1970-01-01 and a proleptic Gregorian (year, month, day), with leap years and month lengths: `Calendar.civilFromDays`, `Calendar.daysFromCivil`, `Calendar.daysInMonth`, `Calendar.isLeap`, `Calendar.nextDay`.
+- Write a day count since 1970-01-01 as text `YYYY-MM-DD`: `Calendar.isoDate`.
 - Find out what went wrong building a series or segmented series: `SeriesError`, returned by `Series.ofArrays?` and `Series.ofPoints?`, and `SegmentError`, returned by `Segmented.ofBreaks?`.
 
 ## Supported versions

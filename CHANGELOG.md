@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.15.0]
+
+- `Calendar.isoDate` writes a day count since 1970-01-01 as `YYYY-MM-DD`.
+
 ## [0.14.0]
 
 - `Series.stack` stacks series that share x-values into running sums, with missing values and negatives handled by stated rules.
