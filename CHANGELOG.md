@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.14.0]
+
+- `Series.stack` stacks series that share x-values into running sums, with missing values and negatives handled by stated rules.
+
 ## [0.13.0]
 
 - `Calendar.civilFromDays` and `Calendar.daysFromCivil` convert between days since 1970-01-01 and a proleptic Gregorian date, proved mutually inverse and valid.

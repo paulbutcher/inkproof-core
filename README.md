@@ -5,6 +5,7 @@ Sorted series with explicit missing data and gaps, mergeable aggregates, and agg
 ## What it does
 
 - Keep a series of sorted x values with explicit missing data, and build one from arrays, points or unsorted input: `Series`, `Series.ofArrays?`, `Series.ofPoints?`, `Series.ofUnsorted`.
+- Stack several series over the same x values into running sums, as stacked areas or bars need: `Series.stack`, `Series.stackAt`.
 - Take the points of a series within an x range, or find where an x value falls: `Series.slice`, `Series.inRange`, `Series.lowerBound`.
 - Search and aggregate a byte, float or plain array without copying it: `IndexedSeries`, `Series.lowerBoundIndexed`.
 - Split a series into segments at gaps or at chosen breaks: `Segmented`, `Segmented.splitWhere`, `Segmented.ofBreaks?`.
