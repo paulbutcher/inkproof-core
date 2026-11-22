@@ -47,6 +47,12 @@ Inkproof.Core holds sorted series with explicit missing data and gaps, mergeable
 - `IndexedSeries` is size plus index access, with instances for `Array`, `ByteArray` and `FloatArray` (CORE-8). `Pyramid.ofIndexed` and `Series.lowerBoundIndexed` read through it and are proved equal to the array versions on `IndexedSeries.toArray`, so PROOF-1 and the lower-bound specification carry over unchanged.
 - A tile is a fixed run of `n` nodes of one level (CORE-7). `Pyramid.queryTiled` takes the branching, the number of levels and a tile fetcher, and is proved equal to `Pyramid.query` for any tile size; it touches only the tiles holding the partial groups at each level. Wire encoding is out of scope.
 
+## Calendar
+
+- `Calendar` is Std.Time.Date's `PlainDate.ofEpochDay`, `toEpochDay`, `Year.Offset.isLeap` and `Month.Ordinal.days` behind `Int × Nat × Nat` signatures, with Core's proofs restated over them; only `Std.Time.Date.PlainDate` is imported, since the `Std.Time` umbrella brings native code.
+- Checked under Lasm: a program using only `PlainDate.ofEpochDay` and `toEpochDay` builds for the browser and prints the dates the previous definitions did. Size: 104.3 KiB brotli with Core's own definitions and 105.0 KiB with Std's, the bounded-type machinery being the difference.
+- Std's day-of-era formula is proved right by comparing it at the boundaries of each of the 400 years with monotonicity in between, because `omega` cannot close it over all 146097 days.
+
 ## Decimal text
 
 - `parseDecimal` reads a `List Char` and accepts only digits, one optional sign and one point. `String.toNat?` also accepts `_` separators, so it would admit text `formatDecimal` never writes.

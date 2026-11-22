@@ -2,6 +2,7 @@
 
 ## [0.15.0]
 
+- `Calendar.civilFromDays`, `daysFromCivil`, `isLeap` and `daysInMonth` are defined by Std.Time.Date's `PlainDate`, with every theorem statement unchanged.
 - `Calendar.isoDate` writes a day count since 1970-01-01 as `YYYY-MM-DD`.
 - `Minimum` and `Maximum` merge with core's `Option.merge`, `minOn` and `maxOn`.
 - The private fold lemmas and `Binning.ofBreaks` use core's `List.foldl_eq_apply_foldr` and `List.countP`.
