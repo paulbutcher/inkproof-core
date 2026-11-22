@@ -47,6 +47,10 @@ Inkproof.Core holds sorted series with explicit missing data and gaps, mergeable
 - `IndexedSeries` is size plus index access, with instances for `Array`, `ByteArray` and `FloatArray` (CORE-8). `Pyramid.ofIndexed` and `Series.lowerBoundIndexed` read through it and are proved equal to the array versions on `IndexedSeries.toArray`, so PROOF-1 and the lower-bound specification carry over unchanged.
 - A tile is a fixed run of `n` nodes of one level (CORE-7). `Pyramid.queryTiled` takes the branching, the number of levels and a tile fetcher, and is proved equal to `Pyramid.query` for any tile size; it touches only the tiles holding the partial groups at each level. Wire encoding is out of scope.
 
+## Decimal text
+
+- `parseDecimal` reads a `List Char` and accepts only digits, one optional sign and one point. `String.toNat?` also accepts `_` separators, so it would admit text `formatDecimal` never writes.
+
 ## Floats
 
 The float model (`OrdFloat`, `Float.toRat`, `Float.Approximates`, the rounding axiom and the discussion of proving it) lives in `inkproof-float`. Core uses its `OrdFloat` as an x-type, for example with `Binning.ofBreaks`.
