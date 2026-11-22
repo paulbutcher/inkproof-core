@@ -60,45 +60,29 @@ theorem Inkproof.Core.Calendar.daysInMonth_thirty_one : ∀ (y : Int) (m : Nat),
 def Inkproof.Core.Calendar.isLeap : Int → Bool
 theorem Inkproof.Core.Calendar.isLeap_iff : ∀ (y : Int), Inkproof.Core.Calendar.isLeap y = Bool.true ↔ y % 4 = 0 ∧ (y % 100 ≠ 0 ∨ y % 400 = 0)
 def Inkproof.Core.Calendar.isoChars : Int × Nat × Nat → List Char
-theorem Inkproof.Core.Calendar.isoChars_fields : ∀ (y : Int) (m d : Nat), 0 ≤ y → y < 10000 → m < 100 → d < 100 → List.take 4 (Inkproof.Core.Calendar.isoChars (y, m, d)) = Inkproof.Core.Calendar.zeroPad 4 y.natAbs ∧ (Inkproof.Core.Calendar.isoChars (y, m, d))[4]? = Option.some '-' ∧ List.take 2 (List.drop 5 (Inkproof.Core.Calendar.isoChars (y, m, d))) = Inkproof.Core.Calendar.zeroPad 2 m ∧ (Inkproof.Core.Calendar.isoChars (y, m, d))[7]? = Option.some '-' ∧ List.drop 8 (Inkproof.Core.Calendar.isoChars (y, m, d)) = Inkproof.Core.Calendar.zeroPad 2 d
+theorem Inkproof.Core.Calendar.isoChars_fields : ∀ (y : Int) (m d : Nat), 0 ≤ y → y < 10000 → m < 100 → d < 100 → List.take 4 (Inkproof.Core.Calendar.isoChars (y, m, d)) = List.leftpad 4 '0' (Nat.toDigits 10 y.natAbs) ∧ (Inkproof.Core.Calendar.isoChars (y, m, d))[4]? = Option.some '-' ∧ List.take 2 (List.drop 5 (Inkproof.Core.Calendar.isoChars (y, m, d))) = List.leftpad 2 '0' (Nat.toDigits 10 m) ∧ (Inkproof.Core.Calendar.isoChars (y, m, d))[7]? = Option.some '-' ∧ List.drop 8 (Inkproof.Core.Calendar.isoChars (y, m, d)) = List.leftpad 2 '0' (Nat.toDigits 10 d)
 theorem Inkproof.Core.Calendar.isoChars_length : ∀ (y : Int) (m d : Nat), 0 ≤ y → y < 10000 → m < 100 → d < 100 → (Inkproof.Core.Calendar.isoChars (y, m, d)).length = 10
 def Inkproof.Core.Calendar.isoDate : Int → String
-theorem Inkproof.Core.Calendar.isoDate_fields : ∀ (z : Int), 0 ≤ (Inkproof.Core.Calendar.civilFromDays z).fst → (Inkproof.Core.Calendar.civilFromDays z).fst < 10000 → List.take 4 (Inkproof.Core.Calendar.isoDate z).toList = Inkproof.Core.Calendar.zeroPad 4 (Inkproof.Core.Calendar.civilFromDays z).fst.natAbs ∧ (Inkproof.Core.Calendar.isoDate z).toList[4]? = Option.some '-' ∧ List.take 2 (List.drop 5 (Inkproof.Core.Calendar.isoDate z).toList) = Inkproof.Core.Calendar.zeroPad 2 (Inkproof.Core.Calendar.civilFromDays z).snd.fst ∧ (Inkproof.Core.Calendar.isoDate z).toList[7]? = Option.some '-' ∧ List.drop 8 (Inkproof.Core.Calendar.isoDate z).toList = Inkproof.Core.Calendar.zeroPad 2 (Inkproof.Core.Calendar.civilFromDays z).snd.snd
-theorem Inkproof.Core.Calendar.isoDate_spec : ∀ (z : Int), (Inkproof.Core.Calendar.isoDate z).toList = (if (Inkproof.Core.Calendar.civilFromDays z).fst < 0 then ['-'] else []) ++ Inkproof.Core.Calendar.zeroPad 4 (Inkproof.Core.Calendar.civilFromDays z).fst.natAbs ++ '-' :: Inkproof.Core.Calendar.zeroPad 2 (Inkproof.Core.Calendar.civilFromDays z).snd.fst ++ '-' :: Inkproof.Core.Calendar.zeroPad 2 (Inkproof.Core.Calendar.civilFromDays z).snd.snd
+theorem Inkproof.Core.Calendar.isoDate_fields : ∀ (z : Int), 0 ≤ (Inkproof.Core.Calendar.civilFromDays z).fst → (Inkproof.Core.Calendar.civilFromDays z).fst < 10000 → List.take 4 (Inkproof.Core.Calendar.isoDate z).toList = List.leftpad 4 '0' (Nat.toDigits 10 (Inkproof.Core.Calendar.civilFromDays z).fst.natAbs) ∧ (Inkproof.Core.Calendar.isoDate z).toList[4]? = Option.some '-' ∧ List.take 2 (List.drop 5 (Inkproof.Core.Calendar.isoDate z).toList) = List.leftpad 2 '0' (Nat.toDigits 10 (Inkproof.Core.Calendar.civilFromDays z).snd.fst) ∧ (Inkproof.Core.Calendar.isoDate z).toList[7]? = Option.some '-' ∧ List.drop 8 (Inkproof.Core.Calendar.isoDate z).toList = List.leftpad 2 '0' (Nat.toDigits 10 (Inkproof.Core.Calendar.civilFromDays z).snd.snd)
+theorem Inkproof.Core.Calendar.isoDate_spec : ∀ (z : Int), (Inkproof.Core.Calendar.isoDate z).toList = (if (Inkproof.Core.Calendar.civilFromDays z).fst < 0 then ['-'] else []) ++ List.leftpad 4 '0' (Nat.toDigits 10 (Inkproof.Core.Calendar.civilFromDays z).fst.natAbs) ++ '-' :: List.leftpad 2 '0' (Nat.toDigits 10 (Inkproof.Core.Calendar.civilFromDays z).snd.fst) ++ '-' :: List.leftpad 2 '0' (Nat.toDigits 10 (Inkproof.Core.Calendar.civilFromDays z).snd.snd)
 theorem Inkproof.Core.Calendar.isoDate_zero : Inkproof.Core.Calendar.isoDate 0 = "1970-01-01"
 def Inkproof.Core.Calendar.nextDay : Int × Nat × Nat → Int × Nat × Nat
 theorem Inkproof.Core.Calendar.nextDay_valid : ∀ (y : Int) (m d : Nat), 1 ≤ m → m ≤ 12 → 1 ≤ (Inkproof.Core.Calendar.nextDay (y, m, d)).snd.fst ∧ (Inkproof.Core.Calendar.nextDay (y, m, d)).snd.fst ≤ 12 ∧ 1 ≤ (Inkproof.Core.Calendar.nextDay (y, m, d)).snd.snd ∧ (Inkproof.Core.Calendar.nextDay (y, m, d)).snd.snd ≤ Inkproof.Core.Calendar.daysInMonth (Inkproof.Core.Calendar.nextDay (y, m, d)).fst (Inkproof.Core.Calendar.nextDay (y, m, d)).snd.fst
-def Inkproof.Core.Calendar.zeroPad : Nat → Nat → List Char
-theorem Inkproof.Core.Calendar.zeroPad_spec : ∀ (w n : Nat), Inkproof.Core.Calendar.zeroPad w n = List.replicate (w - Inkproof.Core.Decimal.digitCount n) '0' ++ Inkproof.Core.Decimal.formatNat 0 n ∧ (Inkproof.Core.Calendar.zeroPad w n).length = Max.max w (Inkproof.Core.Decimal.digitCount n)
 structure Inkproof.Core.Count : Type
 theorem Inkproof.Core.Count.fold_get : ∀ {γ : Type v} (m : γ → Inkproof.Core.Count) (xs : Array γ), (Inkproof.Core.Aggregate.fold m xs).get = (List.map (fun x => (m x).get) xs.toList).sum
 field Inkproof.Core.Count.get : Inkproof.Core.Count → Nat
 constructor Inkproof.Core.Count.mk : Nat → Inkproof.Core.Count
-theorem Inkproof.Core.Decimal.digitChar_isDigit : ∀ {d : Nat}, d < 10 → d.digitChar.isDigit = Bool.true
-theorem Inkproof.Core.Decimal.digitChar_toNat : ∀ {d : Nat}, d < 10 → d.digitChar.toNat - 48 = d
-def Inkproof.Core.Decimal.digitCount : Nat → Nat
-theorem Inkproof.Core.Decimal.digitCount_spec : ∀ (m : Nat), m < 10 ^ Inkproof.Core.Decimal.digitCount m ∧ (m < 10 ∨ 10 ^ (Inkproof.Core.Decimal.digitCount m - 1) ≤ m)
 def Inkproof.Core.Decimal.digitsValue : List Char → Nat
-theorem Inkproof.Core.Decimal.digitsValue_reverse : ∀ (ds : List Nat), (∀ (d : Nat), d ∈ ds → d < 10) → Inkproof.Core.Decimal.digitsValue (List.map Nat.digitChar ds.reverse) = Inkproof.Core.Decimal.lsValue ds
+theorem Inkproof.Core.Decimal.digitsValue_toDigits : ∀ (m : Nat), Inkproof.Core.Decimal.digitsValue (Nat.toDigits 10 m) = m
 def Inkproof.Core.Decimal.formatDecimal : Nat → Int → List Char
-theorem Inkproof.Core.Decimal.formatDecimal_length : ∀ (p : Nat) (n : Int), (Inkproof.Core.Decimal.formatDecimal p n).length = (if n < 0 then 1 else 0) + Max.max (Inkproof.Core.Decimal.digitCount n.natAbs) (p + 1) + if p = 0 then 0 else 1
+theorem Inkproof.Core.Decimal.formatDecimal_length : ∀ (p : Nat) (n : Int), (Inkproof.Core.Decimal.formatDecimal p n).length = (if n < 0 then 1 else 0) + Max.max (Nat.toDigits 10 n.natAbs).length (p + 1) + if p = 0 then 0 else 1
 theorem Inkproof.Core.Decimal.formatDecimal_spec : ∀ (p : Nat) (n : Int), Inkproof.Core.Decimal.formatDecimal p n = (if n < 0 then ['-'] else []) ++ Inkproof.Core.Decimal.formatNat p n.natAbs
 def Inkproof.Core.Decimal.formatNat : Nat → Nat → List Char
 theorem Inkproof.Core.Decimal.formatNat_spec : ∀ (p m : Nat), ∃ whole frac, (Inkproof.Core.Decimal.formatNat p m = whole ++ if p = 0 then [] else '.' :: frac) ∧ whole ≠ [] ∧ frac.length = p ∧ (∀ (c : Char), c ∈ whole ++ frac → c.isDigit = Bool.true) ∧ Inkproof.Core.Decimal.digitsValue (whole ++ frac) = m
-def Inkproof.Core.Decimal.lsDigits : Nat → Nat → List Nat
-theorem Inkproof.Core.Decimal.lsDigits_length : ∀ (m w : Nat), (Inkproof.Core.Decimal.lsDigits m w).length = w
-theorem Inkproof.Core.Decimal.lsDigits_lt : ∀ (m w d : Nat), d ∈ Inkproof.Core.Decimal.lsDigits m w → d < 10
-def Inkproof.Core.Decimal.lsValue : List Nat → Nat
-theorem Inkproof.Core.Decimal.lsValue_lsDigits : ∀ (m w : Nat), Inkproof.Core.Decimal.lsValue (Inkproof.Core.Decimal.lsDigits m w) = m % 10 ^ w
-theorem Inkproof.Core.Decimal.lsValue_scaledDigits : ∀ (p m : Nat), Inkproof.Core.Decimal.lsValue (Inkproof.Core.Decimal.scaledDigits p m) = m
-theorem Inkproof.Core.Decimal.lt_pow_digitCount : ∀ (m : Nat), m < 10 ^ Inkproof.Core.Decimal.digitCount m
 def Inkproof.Core.Decimal.parseDecimal : List Char → Option (Int × Nat)
 theorem Inkproof.Core.Decimal.parseDecimal_formatDecimal : ∀ (p : Nat) (n : Int), Inkproof.Core.Decimal.parseDecimal (Inkproof.Core.Decimal.formatDecimal p n) = Option.some (n, p)
 def Inkproof.Core.Decimal.roundScaled : Nat → Rat → Int
 theorem Inkproof.Core.Decimal.roundScaled_close : ∀ (p : Nat) (q : Rat), ↑(Inkproof.Core.Decimal.roundScaled p q) - 1 / 2 ≤ q * ↑(10 ^ p) ∧ q * ↑(10 ^ p) < ↑(Inkproof.Core.Decimal.roundScaled p q) + 1 / 2
-def Inkproof.Core.Decimal.scaledDigits : Nat → Nat → List Nat
-theorem Inkproof.Core.Decimal.scaledDigits_length : ∀ (p m : Nat), (Inkproof.Core.Decimal.scaledDigits p m).length = Max.max (Inkproof.Core.Decimal.digitCount m) (p + 1)
-theorem Inkproof.Core.Decimal.scaledDigits_lt : ∀ (p m d : Nat), d ∈ Inkproof.Core.Decimal.scaledDigits p m → d < 10
 def Inkproof.Core.Decimal.splitAtChar : Char → List Char → List Char × Option (List Char)
 theorem Inkproof.Core.Decimal.splitAtChar_none : ∀ (c : Char) (a : List Char), ¬c ∈ a → Inkproof.Core.Decimal.splitAtChar c a = (a, Option.none)
 theorem Inkproof.Core.Decimal.splitAtChar_some : ∀ (c : Char) (a b : List Char), ¬c ∈ a → Inkproof.Core.Decimal.splitAtChar c (a ++ c :: b) = (a, Option.some b)

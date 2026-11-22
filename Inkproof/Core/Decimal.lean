@@ -5,32 +5,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 
 namespace Inkproof.Core.Decimal
 
-/-- The low `w` decimal digits of `m`, least significant first. -/
-def lsDigits : Nat → Nat → List Nat
-  | _, 0 => []
-  | m, w + 1 => m % 10 :: lsDigits (m / 10) w
-
-/-- The number of decimal digits needed to write `m`, at least one. -/
-def digitCount (m : Nat) : Nat :=
-  if m < 10 then 1 else digitCount (m / 10) + 1
-termination_by m
-decreasing_by omega
-
-/-- The number written by digits given least significant first. -/
-def lsValue (ds : List Nat) : Nat := ds.foldr (fun d a => d + 10 * a) 0
-
 /-- The number written by decimal digit characters, most significant first. -/
 def digitsValue (cs : List Char) : Nat :=
   cs.foldl (fun a c => 10 * a + (c.toNat - 48)) 0
 
-/-- The digits of `m` least significant first, padded with zeros to at least `p + 1` places so that `p` fractional digits and one whole digit exist. -/
-def scaledDigits (p m : Nat) : List Nat := lsDigits m (max (digitCount m) (p + 1))
-
-/-- `m / 10 ^ p` as decimal characters: the whole digits, then if `p` is not zero a `'.'` and `p` fractional digits. -/
+/-- `m / 10 ^ p` as decimal characters: the whole digits, then if `p` is not zero a `'.'` and `p` fractional digits. The digits are zero-padded to at least `p + 1` places so that a whole digit exists. -/
 def formatNat (p m : Nat) : List Char :=
-  let ds := scaledDigits p m
-  (ds.drop p).reverse.map Nat.digitChar ++
-    (if p = 0 then [] else '.' :: (ds.take p).reverse.map Nat.digitChar)
+  let cs := List.leftpad (p + 1) '0' (Nat.toDigits 10 m)
+  cs.take (cs.length - p) ++ (if p = 0 then [] else '.' :: cs.drop (cs.length - p))
 
 /-- `n / 10 ^ p` as decimal characters, with a leading `'-'` when `n` is negative. -/
 def formatDecimal (p : Nat) (n : Int) : List Char :=

@@ -258,74 +258,46 @@ theorem civilFromDays_succ (z : Int) :
 
 theorem isoDate_zero : isoDate 0 = "1970-01-01" := by decide +kernel
 
-private theorem digitCount_le {n k : Nat} (h : n < 10 ^ (k + 1)) : Decimal.digitCount n ≤ k + 1 := by
-  have := (Decimal.digitCount_spec n).2
-  rcases this with h1 | h1
-  · unfold Decimal.digitCount; split <;> omega
-  · refine Nat.le_of_not_gt fun hc => ?_
-    have : 10 ^ (k + 1) ≤ 10 ^ (Decimal.digitCount n - 1) :=
-      Nat.pow_le_pow_right (by omega) (by omega)
-    omega
+local notation "pad " w:max n:max => List.leftpad w '0' (Nat.toDigits 10 n)
 
-/-- `zeroPad w n` is the decimal digits of `n` preceded by as many zeros as bring it to `w` characters. -/
-theorem zeroPad_spec (w n : Nat) :
-    zeroPad w n = List.replicate (w - Decimal.digitCount n) '0' ++ Decimal.formatNat 0 n ∧
-      (zeroPad w n).length = max w (Decimal.digitCount n) := by
-  have hl := Decimal.formatDecimal_length 0 (n : Int)
-  have hf : Decimal.formatDecimal 0 (n : Int) = Decimal.formatNat 0 n := by
-    simp [Decimal.formatDecimal]
-  rw [hf] at hl
-  simp only [Int.natAbs_natCast, Int.natCast_nonneg, Int.not_lt.2, ite_false] at hl
-  have h1 : 1 ≤ Decimal.digitCount n := by unfold Decimal.digitCount; split <;> omega
-  have hlen : (Decimal.formatNat 0 n).length = Decimal.digitCount n := by
-    simp at hl
-    omega
-  have he : zeroPad w n = List.replicate (w - Decimal.digitCount n) '0' ++ Decimal.formatNat 0 n := by
-    unfold zeroPad
-    simp only [hlen]
-  refine ⟨he, ?_⟩
-  rw [he]
-  simp only [List.length_append, List.length_replicate, hlen]
-  omega
-
-private theorem zeroPad_length (w n : Nat) (h : Decimal.digitCount n ≤ w) :
-    (zeroPad w n).length = w := by
-  have := (zeroPad_spec w n).2
+private theorem pad_length (w n : Nat) (hw : 0 < w) (h : n < 10 ^ w) : (pad w n).length = w := by
+  have := (Nat.length_toDigits_le_iff (b := 10) (by omega) hw).2 h
+  simp only [List.length_leftpad]
   omega
 
 theorem isoChars_length (y : Int) (m d : Nat) (hy : 0 ≤ y) (hy' : y < 10000) (hm : m < 100)
     (hd : d < 100) : (isoChars (y, m, d)).length = 10 := by
-  have h1 := zeroPad_length 4 y.natAbs (digitCount_le (k := 3) (by show _ < 10 ^ _; omega))
-  have h2 := zeroPad_length 2 m (digitCount_le (k := 1) (by show _ < 10 ^ _; omega))
-  have h3 := zeroPad_length 2 d (digitCount_le (k := 1) (by show _ < 10 ^ _; omega))
+  have h1 := pad_length 4 y.natAbs (by omega) (by omega)
+  have h2 := pad_length 2 m (by omega) (by omega)
+  have h3 := pad_length 2 d (by omega) (by omega)
   simp only [isoChars, List.length_append, List.length_cons, h1, h2, h3]
   simp [Int.not_lt.2 hy]
 
 /-- For a year in 0 to 9999 and a month and day below 100, the first four characters of the text are the year padded to four digits, then a hyphen, the month padded to two, a hyphen, and the day padded to two. -/
 theorem isoChars_fields (y : Int) (m d : Nat) (hy : 0 ≤ y) (hy' : y < 10000) (hm : m < 100)
     (hd : d < 100) :
-    (isoChars (y, m, d)).take 4 = zeroPad 4 y.natAbs ∧ (isoChars (y, m, d))[4]? = some '-' ∧
-      ((isoChars (y, m, d)).drop 5).take 2 = zeroPad 2 m ∧ (isoChars (y, m, d))[7]? = some '-' ∧
-      (isoChars (y, m, d)).drop 8 = zeroPad 2 d := by
-  have h1 := zeroPad_length 4 y.natAbs (digitCount_le (k := 3) (by show _ < 10 ^ _; omega))
-  have h2 := zeroPad_length 2 m (digitCount_le (k := 1) (by show _ < 10 ^ _; omega))
-  have h3 := zeroPad_length 2 d (digitCount_le (k := 1) (by show _ < 10 ^ _; omega))
-  have he : isoChars (y, m, d) = zeroPad 4 y.natAbs ++ '-' :: (zeroPad 2 m ++ '-' :: zeroPad 2 d) := by
+    (isoChars (y, m, d)).take 4 = pad 4 y.natAbs ∧ (isoChars (y, m, d))[4]? = some '-' ∧
+      ((isoChars (y, m, d)).drop 5).take 2 = pad 2 m ∧ (isoChars (y, m, d))[7]? = some '-' ∧
+      (isoChars (y, m, d)).drop 8 = pad 2 d := by
+  have h1 := pad_length 4 y.natAbs (by omega) (by omega)
+  have h2 := pad_length 2 m (by omega) (by omega)
+  have h3 := pad_length 2 d (by omega) (by omega)
+  have he : isoChars (y, m, d) = pad 4 y.natAbs ++ '-' :: (pad 2 m ++ '-' :: pad 2 d) := by
     simp [isoChars, Int.not_lt.2 hy]
   rw [he]
-  generalize zeroPad 4 y.natAbs = A at *
-  generalize zeroPad 2 m = B at *
-  generalize zeroPad 2 d = C at *
+  generalize pad 4 y.natAbs = A at *
+  generalize pad 2 m = B at *
+  generalize pad 2 d = C at *
   match A, h1, B, h2, C, h3 with
   | [_, _, _, _], _, [_, _], _, [_, _], _ => simp
 
 /-- For a day whose year is in 0 to 9999, the first four characters of `isoDate z` are the year of `civilFromDays z` padded to four digits, then a hyphen, the month padded to two, a hyphen, and the day padded to two. -/
 theorem isoDate_fields (z : Int) (hy : 0 ≤ (civilFromDays z).1) (hy' : (civilFromDays z).1 < 10000) :
-    (isoDate z).toList.take 4 = zeroPad 4 (civilFromDays z).1.natAbs ∧
+    (isoDate z).toList.take 4 = pad 4 (civilFromDays z).1.natAbs ∧
       (isoDate z).toList[4]? = some '-' ∧
-      ((isoDate z).toList.drop 5).take 2 = zeroPad 2 (civilFromDays z).2.1 ∧
+      ((isoDate z).toList.drop 5).take 2 = pad 2 (civilFromDays z).2.1 ∧
       (isoDate z).toList[7]? = some '-' ∧
-      (isoDate z).toList.drop 8 = zeroPad 2 (civilFromDays z).2.2 := by
+      (isoDate z).toList.drop 8 = pad 2 (civilFromDays z).2.2 := by
   have hv := civilFromDays_valid z
   have hb := daysInMonth_bounds (civilFromDays z).1 (civilFromDays z).2.1
   have := isoChars_fields (civilFromDays z).1 (civilFromDays z).2.1 (civilFromDays z).2.2 hy hy'
@@ -335,8 +307,8 @@ theorem isoDate_fields (z : Int) (hy : 0 ≤ (civilFromDays z).1) (hy' : (civilF
 /-- The text of `isoDate z` is, for every day, the sign of the year of `civilFromDays z` when negative, the magnitude padded to four digits, a hyphen, the month padded to two, a hyphen, and the day padded to two. -/
 theorem isoDate_spec (z : Int) :
     (isoDate z).toList =
-      (if (civilFromDays z).1 < 0 then ['-'] else []) ++ zeroPad 4 (civilFromDays z).1.natAbs ++
-        '-' :: zeroPad 2 (civilFromDays z).2.1 ++ '-' :: zeroPad 2 (civilFromDays z).2.2 := by
+      (if (civilFromDays z).1 < 0 then ['-'] else []) ++ pad 4 (civilFromDays z).1.natAbs ++
+        '-' :: pad 2 (civilFromDays z).2.1 ++ '-' :: pad 2 (civilFromDays z).2.2 := by
   simp [isoDate, isoChars]
 
 end Inkproof.Core.Calendar

@@ -3,6 +3,7 @@
 ## [0.15.0]
 
 - `Calendar.isoDate` writes a day count since 1970-01-01 as `YYYY-MM-DD`.
+- `Decimal.formatNat` builds on `Nat.toDigits` and `List.leftpad`; `Decimal.digitCount`, `lsDigits`, `lsValue`, `scaledDigits`, `lt_pow_digitCount`, `digitCount_spec`, `digitChar_isDigit`, `digitChar_toNat`, `digitsValue_reverse` and `Calendar.zeroPad` are removed in favour of the Lean core ones, and `digitsValue_toDigits` is added.
 
 ## [0.14.0]
 
