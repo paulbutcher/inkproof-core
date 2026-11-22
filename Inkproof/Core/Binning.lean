@@ -78,16 +78,16 @@ so the first column is everything below `breaks[0]`. Needs no arithmetic on `α`
 `OrdFloat` x-values with breaks chosen by the caller. -/
 def ofBreaks [DecidableLE α] [Std.IsPreorder α] (breaks : Array α) : Binning α where
   columns := breaks.size + 1
-  col x := (breaks.toList.filter fun b => decide (b ≤ x)).length
+  col x := breaks.toList.countP fun b => decide (b ≤ x)
   col_lt x := by
-    have := List.length_filter_le (fun b => decide (b ≤ x)) breaks.toList
+    have := List.countP_le_length (p := fun b => decide (b ≤ x)) (l := breaks.toList)
     simp only [Array.length_toList] at this
     omega
   monotone {x y} h := by
     induction breaks.toList with
     | nil => simp
     | cons b l ih =>
-      simp only [List.filter_cons]
+      simp only [List.countP_cons]
       by_cases hx : b ≤ x
       · have hy : b ≤ y := Std.IsPreorder.le_trans _ _ _ hx h
         simp [hx, hy, ih]

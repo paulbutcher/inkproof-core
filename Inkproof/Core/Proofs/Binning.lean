@@ -92,7 +92,7 @@ theorem ofBreaks_columns {α : Type u} [LE α] [DecidableLE α] [Std.IsPreorder 
 /-- A point's column is the number of breaks at or below it. -/
 theorem ofBreaks_col {α : Type u} [LE α] [DecidableLE α] [Std.IsPreorder α] (breaks : Array α)
     (x : α) : (ofBreaks breaks).col x = breaks.countP fun b => decide (b ≤ x) := by
-  rw [← Array.countP_toList, List.countP_eq_length_filter]
+  rw [← Array.countP_toList]
   rfl
 
 end Binning

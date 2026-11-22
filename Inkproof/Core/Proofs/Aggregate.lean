@@ -17,17 +17,11 @@ namespace Aggregate
 
 variable {M : Type u} [Aggregate M] {γ : Type v}
 
-private theorem foldl_merge_eq [LawfulAggregate M] (a : M) (l : List M) :
-    l.foldl merge a = merge a (l.foldr merge empty) := by
-  induction l generalizing a with
-  | nil => simp
-  | cons x l ih => simp [ih, LawfulAggregate.merge_assoc]
-
 /-- For a lawful aggregate, folding from the left equals folding from the right, so a fold can be
 read as `merge (measure x₀) (merge (measure x₁) …)`. -/
 theorem fold_eq_foldr [LawfulAggregate M] (m : γ → M) (xs : Array γ) :
     fold m xs = (xs.toList.map m).foldr merge empty := by
-  rw [fold, ← Array.foldl_toList, ← List.foldl_map, foldl_merge_eq, LawfulAggregate.empty_merge]
+  rw [fold, ← Array.foldl_toList, ← List.foldl_map, List.foldl_eq_apply_foldr (init := empty), LawfulAggregate.empty_merge]
 
 private theorem foldl_prod {A : Type u} {B : Type w} [Aggregate A] [Aggregate B] (m₁ : γ → A)
     (m₂ : γ → B) (l : List γ) (a : A) (b : B) :
@@ -227,7 +221,7 @@ private theorem merge_get (a b : Maximum α) :
       | some x, some y => some (if y ≤ x then x else y)
       | none, y => y
       | x, none => x := by
-  rcases a with ⟨_ | x⟩ <;> rcases b with ⟨_ | y⟩ <;> rfl
+  rcases a with ⟨_ | x⟩ <;> rcases b with ⟨_ | y⟩ <;> simp [merge, maxOn, minOn, LE.le_opposite_iff]
 
 omit [Std.IsLinearOrder α] in
 private theorem run_eq_none (m : γ → Maximum α) (l : List γ) :

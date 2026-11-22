@@ -34,17 +34,12 @@ theorem foldRange_of_size_le (a : Array M) {lo hi : Nat} (h : a.size ≤ lo) :
 
 variable [LawfulAggregate M]
 
-private theorem foldl_merge_from (a : M) (l : List M) :
-    l.foldl merge a = merge a (l.foldl merge empty) := by
-  induction l generalizing a with
-  | nil => simp
-  | cons x l ih =>
-    simp only [List.foldl_cons, LawfulAggregate.empty_merge]
-    rw [ih, ih x, LawfulAggregate.merge_assoc]
-
 theorem foldl_merge_append (xs ys : Array M) :
     (xs ++ ys).foldl merge empty = merge (xs.foldl merge empty) (ys.foldl merge empty) := by
-  rw [Array.foldl_append, ← Array.foldl_toList (xs := ys), foldl_merge_from, Array.foldl_toList]
+  simp only [← Array.foldl_toList, List.foldl_eq_apply_foldr (init := empty),
+    LawfulAggregate.empty_merge, Array.toList_append, List.foldr_append]
+  have := List.foldr_assoc (op := merge) (l := xs.toList) (a₁ := empty) (a₂ := ys.toList.foldr merge empty)
+  simpa using this
 
 theorem foldRange_single (a : Array M) {j : Nat} (h : j < a.size) : foldRange a j (j + 1) = a[j] := by
   rw [foldRange_eq_extract, Array.extract_succ_right (Nat.lt_succ_self j) h, Array.extract_eq_empty_of_le

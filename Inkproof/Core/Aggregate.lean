@@ -94,53 +94,31 @@ structure Occupancy where
   bits : Nat
   deriving Repr, BEq
 
-/-- Picking the left argument of `r` when it holds, else the right, is associative when `r` is a
-total preorder; minimum and maximum both reduce to this. -/
-private theorem pick_assoc {α : Type u} (r : α → α → Prop) [DecidableRel r]
-    (trans : ∀ a b c, r a b → r b c → r a c) (total : ∀ a b, r a b ∨ r b a) (a b c : α) :
-    (if r (if r a b then a else b) c then (if r a b then a else b) else c) =
-      (if r a (if r b c then b else c) then a else (if r b c then b else c)) := by
-  have := trans a b c; have := trans a c b; have := trans b a c; have := trans b c a
-  have := trans c a b; have := trans c b a
-  have := total a b; have := total b c; have := total a c
-  by_cases hab : r a b <;> by_cases hbc : r b c <;> by_cases hac : r a c <;> simp_all
-
 section Order
 
 variable {α : Type u} [LE α] [DecidableLE α]
 
 instance : Aggregate (Minimum α) where
   empty := ⟨none⟩
-  merge
-    | ⟨some a⟩, ⟨some b⟩ => ⟨some (if a ≤ b then a else b)⟩
-    | ⟨none⟩, b => b
-    | a, ⟨none⟩ => a
+  merge a b := ⟨Option.merge (minOn id) a.get b.get⟩
 
 instance : Aggregate (Maximum α) where
   empty := ⟨none⟩
-  merge
-    | ⟨some a⟩, ⟨some b⟩ => ⟨some (if b ≤ a then a else b)⟩
-    | ⟨none⟩, b => b
-    | a, ⟨none⟩ => a
+  merge a b := ⟨Option.merge (maxOn id) a.get b.get⟩
 
 variable [Std.IsLinearOrder α]
 
 instance : LawfulAggregate (Minimum α) :=
   .of_laws
-    (fun ⟨a⟩ ⟨b⟩ ⟨c⟩ => by
-      cases a <;> cases b <;> cases c <;> simp only [merge, Minimum.mk.injEq, Option.some.injEq]
-      exact pick_assoc (· ≤ ·) Std.IsPreorder.le_trans Std.IsLinearPreorder.le_total _ _ _)
-    (fun ⟨a⟩ => by cases a <;> rfl)
-    (fun ⟨a⟩ => by cases a <;> rfl)
+    (fun ⟨a⟩ ⟨b⟩ ⟨c⟩ => congrArg Minimum.mk (Std.Associative.assoc (op := Option.merge (minOn id)) a b c))
+    (fun ⟨a⟩ => congrArg Minimum.mk (Std.LawfulLeftIdentity.left_id (op := Option.merge (minOn id)) a))
+    (fun ⟨a⟩ => congrArg Minimum.mk (Std.LawfulRightIdentity.right_id (op := Option.merge (minOn id)) a))
 
 instance : LawfulAggregate (Maximum α) :=
   .of_laws
-    (fun ⟨a⟩ ⟨b⟩ ⟨c⟩ => by
-      cases a <;> cases b <;> cases c <;> simp only [merge, Maximum.mk.injEq, Option.some.injEq]
-      exact pick_assoc (fun x y => y ≤ x) (fun _ _ _ h₁ h₂ => Std.IsPreorder.le_trans _ _ _ h₂ h₁)
-        (fun _ _ => Std.IsLinearPreorder.le_total _ _) _ _ _)
-    (fun ⟨a⟩ => by cases a <;> rfl)
-    (fun ⟨a⟩ => by cases a <;> rfl)
+    (fun ⟨a⟩ ⟨b⟩ ⟨c⟩ => congrArg Maximum.mk (Std.Associative.assoc (op := Option.merge (maxOn id)) a b c))
+    (fun ⟨a⟩ => congrArg Maximum.mk (Std.LawfulLeftIdentity.left_id (op := Option.merge (maxOn id)) a))
+    (fun ⟨a⟩ => congrArg Maximum.mk (Std.LawfulRightIdentity.right_id (op := Option.merge (maxOn id)) a))
 
 end Order
 
