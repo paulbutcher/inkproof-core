@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.15.0]
+## [0.16.0]
 
 - `Calendar.civilFromDays`, `daysFromCivil`, `isLeap` and `daysInMonth` are defined by Std.Time.Date's `PlainDate`, with every theorem statement unchanged.
 - `Calendar.isoDate` writes a day count since 1970-01-01 as `YYYY-MM-DD`.
