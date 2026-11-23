@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.16.1]
+
+- The README names no version in its `require` example and has no supported-versions table.
+
 ## [0.16.0]
 
 - `Calendar.civilFromDays`, `daysFromCivil`, `isLeap` and `daysInMonth` are defined by Std.Time.Date's `PlainDate`, with every theorem statement unchanged.
