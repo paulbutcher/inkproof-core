@@ -23,19 +23,14 @@ Sorted series with explicit missing data and gaps, mergeable aggregates, and agg
 - Write a day count since 1970-01-01 as text `YYYY-MM-DD`: `Calendar.isoDate`.
 - Find out what went wrong building a series or segmented series: `SeriesError`, returned by `Series.ofArrays?` and `Series.ofPoints?`, and `SegmentError`, returned by `Segmented.ofBreaks?`.
 
-## Supported versions
-
-| Inkproof.Core | Lean | Lasm (`@lasm/cli`) |
-| --- | --- | --- |
-| `main` | `leanprover/lean4:v4.35.0` | 0.8.0 |
-| `v0.10.1` | `leanprover/lean4:v4.35.0` | 0.8.0 |
-
 The library depends only on `inkproof-float`, and builds natively and under Lasm from the same source.
 
 ## Using it
 
+Require the latest release tag listed in [CHANGELOG.md](CHANGELOG.md); `lakefile.lean` records the Lean and dependency pins.
+
 ```lean
-require «inkproof-core» from git "https://github.com/paulbutcher/inkproof-core" @ "v0.10.1"
+require «inkproof-core» from git "https://github.com/paulbutcher/inkproof-core" @ "<latest release tag>"
 ```
 
 `import Inkproof.Core` brings in everything a program runs. `import Inkproof.Core.Proofs` adds the published theorems, which a browser build need not link. Each definition's docstring names the theorems about it.
