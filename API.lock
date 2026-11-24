@@ -79,10 +79,32 @@ theorem Inkproof.Core.Decimal.formatDecimal_length : ∀ (p : Nat) (n : Int), (I
 theorem Inkproof.Core.Decimal.formatDecimal_spec : ∀ (p : Nat) (n : Int), Inkproof.Core.Decimal.formatDecimal p n = (if n < 0 then ['-'] else []) ++ Inkproof.Core.Decimal.formatNat p n.natAbs
 def Inkproof.Core.Decimal.formatNat : Nat → Nat → List Char
 theorem Inkproof.Core.Decimal.formatNat_spec : ∀ (p m : Nat), ∃ whole frac, (Inkproof.Core.Decimal.formatNat p m = whole ++ if p = 0 then [] else '.' :: frac) ∧ whole ≠ [] ∧ frac.length = p ∧ (∀ (c : Char), c ∈ whole ++ frac → c.isDigit = Bool.true) ∧ Inkproof.Core.Decimal.digitsValue (whole ++ frac) = m
+def Inkproof.Core.Decimal.log10 : Nat → Nat
+theorem Inkproof.Core.Decimal.log10_spec : ∀ (n : Nat), 0 < n → 10 ^ Inkproof.Core.Decimal.log10 n ≤ n ∧ n < 10 ^ (Inkproof.Core.Decimal.log10 n + 1)
+def Inkproof.Core.Decimal.magnitude : Rat → Int
+theorem Inkproof.Core.Decimal.magnitude_pow10 : ∀ (k : Int), Inkproof.Core.Decimal.magnitude (Inkproof.Core.Decimal.pow10 k) = k
+theorem Inkproof.Core.Decimal.magnitude_spec : ∀ (q : Rat), q ≠ 0 → Inkproof.Core.Decimal.pow10 (Inkproof.Core.Decimal.magnitude q) ≤ q.abs ∧ q.abs < Inkproof.Core.Decimal.pow10 (Inkproof.Core.Decimal.magnitude q + 1)
 def Inkproof.Core.Decimal.parseDecimal : List Char → Option (Int × Nat)
 theorem Inkproof.Core.Decimal.parseDecimal_formatDecimal : ∀ (p : Nat) (n : Int), Inkproof.Core.Decimal.parseDecimal (Inkproof.Core.Decimal.formatDecimal p n) = Option.some (n, p)
+def Inkproof.Core.Decimal.pow10 : Int → Rat
+theorem Inkproof.Core.Decimal.pow10_add : ∀ (k j : Int), Inkproof.Core.Decimal.pow10 (k + j) = Inkproof.Core.Decimal.pow10 k * Inkproof.Core.Decimal.pow10 j
+theorem Inkproof.Core.Decimal.pow10_mono : ∀ {j k : Int}, j ≤ k → Inkproof.Core.Decimal.pow10 j ≤ Inkproof.Core.Decimal.pow10 k
+theorem Inkproof.Core.Decimal.pow10_nat : ∀ (n : Nat), Inkproof.Core.Decimal.pow10 ↑n = ↑(10 ^ n)
+theorem Inkproof.Core.Decimal.pow10_pos : ∀ (k : Int), 0 < Inkproof.Core.Decimal.pow10 k
+theorem Inkproof.Core.Decimal.pow10_strict : ∀ {j k : Int}, j < k → Inkproof.Core.Decimal.pow10 j < Inkproof.Core.Decimal.pow10 k
+theorem Inkproof.Core.Decimal.pow10_sub : ∀ (a b : Nat), Inkproof.Core.Decimal.pow10 (↑a - ↑b) * ↑(10 ^ b) = ↑(10 ^ a)
+theorem Inkproof.Core.Decimal.pow10_succ : ∀ (k : Int), Inkproof.Core.Decimal.pow10 (k + 1) = 10 * Inkproof.Core.Decimal.pow10 k
+theorem Inkproof.Core.Decimal.pow10_zero : Inkproof.Core.Decimal.pow10 0 = 1
 def Inkproof.Core.Decimal.roundScaled : Nat → Rat → Int
 theorem Inkproof.Core.Decimal.roundScaled_close : ∀ (p : Nat) (q : Rat), ↑(Inkproof.Core.Decimal.roundScaled p q) - 1 / 2 ≤ q * ↑(10 ^ p) ∧ q * ↑(10 ^ p) < ↑(Inkproof.Core.Decimal.roundScaled p q) + 1 / 2
+theorem Inkproof.Core.Decimal.roundScaled_natCast : ∀ (n : Nat), Inkproof.Core.Decimal.roundScaled 0 ↑n = ↑n
+def Inkproof.Core.Decimal.roundSignificant : Nat → Float → Float
+def Inkproof.Core.Decimal.roundSignificantRat : Nat → Rat → Rat
+theorem Inkproof.Core.Decimal.roundSignificantRat_close : ∀ (digits : Nat) (q : Rat), q ≠ 0 → (Inkproof.Core.Decimal.roundSignificantRat digits q - q).abs ≤ Inkproof.Core.Decimal.pow10 (Inkproof.Core.Decimal.magnitude q + 1 - ↑digits) / 2
+theorem Inkproof.Core.Decimal.roundSignificantRat_pow10 : ∀ (digits : Nat), 1 ≤ digits → ∀ (k : Int), Inkproof.Core.Decimal.roundSignificantRat digits (Inkproof.Core.Decimal.pow10 k) = Inkproof.Core.Decimal.pow10 k
+theorem Inkproof.Core.Decimal.roundSignificantRat_zero : ∀ (digits : Nat), Inkproof.Core.Decimal.roundSignificantRat digits 0 = 0
+theorem Inkproof.Core.Decimal.roundSignificant_nonFinite : ∀ (digits : Nat) (x : Float), Inkproof.Float.Float.toRat x = Option.none → Inkproof.Core.Decimal.roundSignificant digits x = x
+theorem Inkproof.Core.Decimal.roundSignificant_zero : ∀ (digits : Nat) (x : Float), Inkproof.Float.Float.toRat x = Option.some 0 → Inkproof.Core.Decimal.roundSignificant digits x = x
 def Inkproof.Core.Decimal.splitAtChar : Char → List Char → List Char × Option (List Char)
 theorem Inkproof.Core.Decimal.splitAtChar_none : ∀ (c : Char) (a : List Char), ¬c ∈ a → Inkproof.Core.Decimal.splitAtChar c a = (a, Option.none)
 theorem Inkproof.Core.Decimal.splitAtChar_some : ∀ (c : Char) (a b : List Char), ¬c ∈ a → Inkproof.Core.Decimal.splitAtChar c (a ++ c :: b) = (a, Option.some b)

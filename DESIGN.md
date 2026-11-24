@@ -56,6 +56,7 @@ Inkproof.Core holds sorted series with explicit missing data and gaps, mergeable
 ## Decimal text
 
 - `parseDecimal` reads a `List Char` and accepts only digits, one optional sign and one point. `String.toNat?` also accepts `_` separators, so it would admit text `formatDecimal` never writes.
+- `roundSignificant` rounds the float's exact value (`Float.toRat`) in rationals, halves away from zero, then converts the decimal result with `Float.ofScientific`, so `0.15` rounds to 1 digit as `0.1` because the float is just below it. The float-level result is tested rather than proved, as the float model does not describe `Float.ofScientific`.
 
 ## Floats
 

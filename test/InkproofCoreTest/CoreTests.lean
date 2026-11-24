@@ -112,8 +112,36 @@ def calendarRoundTrip : TestCase := .mk "calendar days are consecutive dates" <|
     let n := Calendar.civilFromDays (z - 1)
     check (Calendar.nextDay n == c) s!"successor of day {z - 1}"
 
+def roundSignificantKnown : TestCase := .mk "roundSignificant on known values" <| do
+  let cases : List (Nat × Float × Float) :=
+    [(3, 99.99999999, 100.0), (4, 1234567.0, 1235000.0), (3, -0.00123456, -0.00123),
+     (2, 0.125, 0.13), (1, 9.5, 10.0), (3, 1e300, 1e300)]
+  for (d, x, y) in cases do
+    check (Decimal.roundSignificant d x == y) s!"roundSignificant {d} {x}"
+  for d in [1, 3, 17] do
+    for k in [0:41] do
+      let p := Float.ofScientific 1 true k
+      check (Decimal.roundSignificant d p == p) s!"10^-{k} with {d} digits"
+      let q := Float.ofScientific 1 false k
+      check (Decimal.roundSignificant d q == q) s!"10^{k} with {d} digits"
+  check (Decimal.roundSignificant 3 0.0 == 0.0) "zero"
+  check (Decimal.roundSignificant 3 (1.0 / 0.0) == 1.0 / 0.0) "infinity"
+  check (Decimal.roundSignificant 3 (-1.0 / 0.0) == -1.0 / 0.0) "negative infinity"
+  check (Decimal.roundSignificant 3 (0.0 / 0.0)).isNaN "nan"
+
+def roundSignificantClose : TestCase := .mk "roundSignificant is idempotent and within half a unit" <|
+  forAll 500 (fun g =>
+    let (m, g) := g.below 1000000000
+    let (e, g) := g.below 40
+    (Float.ofScientific (m + 1) true e, g)) fun x => do
+    for d in [1, 2, 5] do
+      let y := Decimal.roundSignificant d x
+      check (Decimal.roundSignificant d y == y) s!"{d} digits of {x} not idempotent"
+      check ((y - x).abs ≤ x.abs * 0.5 * Float.pow 10 (1 - d.toFloat) * (1 + 1e-9))
+        s!"{d} digits of {x} is {y}"
+
 def tests : List TestCase :=
   [floatBinningMonotone, indexedAndTiled, tiledColumns, floatBuffer, calendarKnownDates,
-   calendarRoundTrip]
+   calendarRoundTrip, roundSignificantKnown, roundSignificantClose]
 
 end InkproofCoreTest.CoreTests
