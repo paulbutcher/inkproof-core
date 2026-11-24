@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.17.0]
+
+- `Decimal.roundSignificant` and `Decimal.roundSignificantRat` round a float or rational to a number of significant digits.
+
 ## [0.16.1]
 
 - The README names no version in its `require` example and has no supported-versions table.
