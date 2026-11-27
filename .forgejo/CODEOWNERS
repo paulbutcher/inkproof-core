@@ -1,11 +1,11 @@
-# Code owners for autonomy level 3 (scripts/setup-repo.sh checks this file).
-# Each line is a Go regular expression matched against a whole path, without
-# a leading slash; every matching line adds its owners, and each owner's
-# review request blocks the merge until they approve.
+# Code owners for autonomy level 3, which the kit's repository setup checks.
+# Each line is a Go regular expression matched against a whole path, without a leading
+# slash; every matching line adds its owners, and each owner's review request blocks the
+# merge until they approve.
 .* @gatekeeper @conformance
 API\.lock @coordinator
-\.forgejo/.* @paulbutcher
-\.github/.* @paulbutcher
-lean-toolchain @paulbutcher
 CLAUDE\.md @paulbutcher
+\.forgejo/.* @paulbutcher
+lean-toolchain @paulbutcher
 REQUIREMENTS\.md @paulbutcher
+\.github/.* @paulbutcher

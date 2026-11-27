@@ -1,7 +1,7 @@
-# Required checks for every library and consumer repository. .forgejo/ is
-# code-owned by the human, so agents can't change this file without them.
-# No `uses:` actions: everything here is plain shell, so CI fetches no code
-# from outside. FORGE_URL and the proxy settings come from the runner.
+# Required checks for every repository of the project but the coordination one. The
+# forge's directory is code-owned by the human, so agents can't change this file
+# without them. No `uses:` actions: everything here is plain shell, so CI fetches no
+# code from outside. FORGE_URL and the proxy settings come from the runner.
 name: checks
 
 on:
@@ -26,19 +26,22 @@ jobs:
       # nothing. The job's own token reads only this repository.
       TOKEN: ${{ secrets.DEPS_READ_TOKEN }}
       # Every GitHub owner this project's repositories have lived under,
-      # current first; set by the kit's bootstrap.
+      # current first, and the repositories; set by the kit's bootstrap.
       GH_OWNERS: ${{ vars.DEPS_GITHUB_OWNERS }}
+      DEPS_REPOSITORIES: ${{ vars.DEPS_REPOSITORIES }}
     steps:
       - name: Check out
         run: |
           echo /opt/elan/bin >> "$GITHUB_PATH"
-          auth="Authorization: Basic $(printf 'ci-reader:%s' "$TOKEN" | base64 -w0)"
+          auth="Authorization: Basic $(printf 'ci-reader:%s' "$TOKEN" | base64 | tr -d '\n')"
           git config --global "http.${FORGE_URL}/.extraHeader" "$auth"
-          # Dependencies keep their GitHub URLs; fetch this project's from Forgejo.
-          [ -n "$GH_OWNERS" ] || { echo "::error::The DEPS_GITHUB_OWNERS variable is not set; run the kit's bootstrap"; exit 1; }
+          # Dependencies keep their GitHub URLs; fetch this project's from the forge.
+          [ -n "$DEPS_REPOSITORIES" ] || { echo "::error::The DEPS_REPOSITORIES variable is not set; run the kit's bootstrap"; exit 1; }
           for owner in $GH_OWNERS; do
-            git config --global --add "url.${FORGE_URL}/${GITHUB_REPOSITORY_OWNER}/inkproof-.insteadOf" \
-              "https://github.com/${owner}/inkproof-"
+            for repo in $DEPS_REPOSITORIES; do
+              git config --global --add "url.${FORGE_URL}/${GITHUB_REPOSITORY_OWNER}/${repo}.insteadOf" \
+                "https://github.com/${owner}/${repo}"
+            done
           done
           git init -q .
           git remote add origin "${FORGE_URL}/${GITHUB_REPOSITORY}.git"
